@@ -1,0 +1,592 @@
+; N02 Kaillera Language File - Russian
+; ====================================
+; This file contains all user-facing strings used by the N02 Kaillera client.
+; To create a translation, copy this file and translate the values.
+; Save as <LanguageName>.lng in the KailleraLang folder.
+; The client will auto-detect .lng files in the KailleraLang folder.
+;
+; Format: KEY=VALUE
+; Lines starting with ; are comments. Empty lines are ignored.
+; Keys must not be changed — only translate the values.
+; Format strings like %s, %i, %d must be preserved in translations.
+; \n represents a newline, \r\n represents a Windows newline.
+; The first line after this comment block (LANG_NAME) is the display name.
+
+LANG_NAME=Русский
+
+; ============================================================================
+; DIALOG CAPTIONS
+; ============================================================================
+CAPTION_MAIN=N02
+CAPTION_SERVER_SELECT=N02
+CAPTION_CONNECTION_WINDOW=Окно подключения
+CAPTION_ITEM_EDIT=N02
+CAPTION_ABOUT=О программе
+CAPTION_CUSTOM_IP=IP сервера
+CAPTION_MASTER_LIST=N02
+CAPTION_SERVER_ROOM=N02
+CAPTION_ROOM_OPTIONS=Настройки комнаты
+CAPTION_PLAYER=Плеер
+CAPTION_EXCEPTION=Исключение
+CAPTION_STATS=Статистика
+
+; ============================================================================
+; COMMON BUTTONS
+; ============================================================================
+BTN_OK=OK
+BTN_CANCEL=Отмена
+BTN_CLOSE=Закрыть
+BTN_ADD=Добавить
+BTN_EDIT=Изменить
+BTN_DELETE=Удалить
+BTN_CONNECT=Подключиться
+BTN_REFRESH=Обновить
+BTN_PING=Пинг
+BTN_TRACE=Трассировка
+BTN_ABOUT=О программе
+BTN_OPTIONS=Настройки
+BTN_COPY=Копировать
+BTN_RESET=Сброс
+BTN_PLAY=Воспроизвести
+BTN_STOP=Стоп
+BTN_DELETE_REC=Удалить
+BTN_OPEN_FOLDER=Открыть папку
+
+; ============================================================================
+; MAIN DIALOG (P2P Selection)
+; ============================================================================
+MAIN_BTN_HOST=Хо&ст
+MAIN_BTN_CONNECT=&Подключиться
+MAIN_BTN_PASTE_GO=Вставить && Подключиться
+MAIN_BTN_WAITING_GAMES=&Ожидающие игры
+MAIN_LBL_IP_CODE=IP/Код:
+MAIN_LBL_GAME=Игра:
+MAIN_LBL_HOST_PORT=Порт хоста:
+MAIN_LBL_NICK=Ник:
+MAIN_LBL_STORED=Сохранённые:
+MAIN_GRP_MODE=Режим
+MAIN_RB_P2P=P2P
+MAIN_RB_SERVER=Сервер
+MAIN_RB_PLAYBACK=Воспроизведение
+
+; ============================================================================
+; SERVER SELECT DIALOG (Kaillera Mode)
+; ============================================================================
+SSDLG_BTN_CUSTOM_IP=IP сервера
+SSDLG_BTN_WAITING_GAMES=Ожидающие игры
+SSDLG_BTN_LIVE_SERVER_LIST=Список серверов
+SSDLG_LBL_FRAME_DELAY=Задержка кадров:
+SSDLG_GRP_LOCAL_LIST=Локальный список
+
+; ============================================================================
+; CONNECTION DIALOG (P2P Game Room)
+; ============================================================================
+CONN_BTN_CHAT=&Чат
+CONN_CHK_READY=Готов
+CONN_CHK_RECORD=&Записать игру
+CONN_BTN_ADVANCED=Дополнительно
+CONN_BTN_COPY_IP=Копировать IP
+CONN_BTN_RETR=re&tr
+CONN_BTN_PING=пинг
+CONN_BTN_DROP_GAME=&Сбросить игру
+CONN_CHK_ENLIST=Показывать в списке публичных игр
+CONN_GRP_HOST=Хост:
+CONN_LBL_FRAME_DELAY=Задержка кадров:
+CONN_LBL_CONNECT_CODE=Код подключения:
+CONN_LBL_WAITING=(ожидание)
+CONN_BTN_COPY_CODE=Копировать
+CONN_BTN_EJECT_PEER=Отключить пира
+CONN_BTN_DONT_ALLOW_LIST=Скрыть из списка
+CONN_BTN_STATS=статистика
+
+; ============================================================================
+; ITEM EDIT DIALOG (Add/Edit Server or Stored User)
+; ============================================================================
+ITEMEDIT_LBL_NAME=Имя:
+ITEMEDIT_LBL_IP=IP:
+
+; ============================================================================
+; ABOUT DIALOG
+; ============================================================================
+ABOUT_LBL_CREDITS=Протокол и API Kaillera:\n(c) 2001-2002 Christophe Thibault\n------------------------------------------------------
+ABOUT_LBL_N02=n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera
+ABOUT_BTN_WEBSITE=Сайт Open Kaillera
+ABOUT_BTN_USAGE_POLICY=Политика использования
+ABOUT_BTN_LICENSE=Лицензия
+
+; ============================================================================
+; CUSTOM IP DIALOG
+; ============================================================================
+CUSTOMIP_BTN_CONNECT=Подключиться
+CUSTOMIP_LBL_IP=IP:
+
+; ============================================================================
+; MASTER SERVER LIST DIALOG
+; ============================================================================
+MLIST_BTN_CONNECT=&Подключиться
+MLIST_BTN_CLOSE=За&крыть
+MLIST_BTN_ADD_LOCAL=&Добавить в локальный список
+MLIST_BTN_REFRESH=&Обновить
+MLIST_BTN_WAITING_GAMES=&Ожидающие игры
+
+; ============================================================================
+; SERVER ROOM DIALOG (Kaillera Game Room)
+; ============================================================================
+SDLG_BTN_CHAT=Чат
+SDLG_BTN_START=&Старт
+SDLG_BTN_DROP=Сброс
+SDLG_BTN_LEAVE=Выйти
+SDLG_BTN_KICK=&Кикнуть
+SDLG_BTN_LAGSTAT=Лаг-стат
+SDLG_CHK_RECORD=&Записать игру
+SDLG_LBL_DELAY=задержка: 3 кадра
+SDLG_LBL_SPEED=скорость: 58fps
+SDLG_BTN_CREATE=Создать
+SDLG_BTN_GAME_CHAT=Чат
+SDLG_LBL_JOIN_MSG=Сообщение при входе:
+SDLG_BTN_OPTIONS=Настройки
+SDLG_BTN_ADVERTISE=Рекламировать
+
+; ============================================================================
+; ROOM OPTIONS DIALOG
+; ============================================================================
+OPTS_LBL_MAX_PLAYERS=Макс. игроков:
+OPTS_LBL_MAX_PING=Макс. пинг:
+OPTS_LBL_ON_USER_JOIN=При входе игрока:
+OPTS_LBL_WINDOW_FLASH=Мигание окна:
+OPTS_LBL_BEEP=Звук. сигнал:
+
+; ============================================================================
+; PLAYER/PLAYBACK DIALOG
+; ============================================================================
+PLAYER_RB_P2P=P2P
+PLAYER_RB_SERVER=Сервер
+PLAYER_RB_PLAYBACK=Воспроизведение
+PLAYER_GRP_MODE=Режим
+
+; ============================================================================
+; ERROR/EXCEPTION DIALOG
+; ============================================================================
+ERROR_BTN_REPORT=Сообщить об ошибке
+
+; ============================================================================
+; STATS DIALOG
+; ============================================================================
+STATS_BTN_COPY=Копировать
+
+; ============================================================================
+; MODE COMBO ITEMS
+; ============================================================================
+MODE_1_P2P=1. P2P
+MODE_2_SERVER=2. Сервер
+MODE_3_PLAYBACK=3. Воспроизведение
+MODE_P2P_ONLY=P2P
+
+; ============================================================================
+; CONNECTION TYPES
+; ============================================================================
+CONN_TYPE_LAN=LAN
+CONN_TYPE_EXC=Отл
+CONN_TYPE_GOOD=Хор
+CONN_TYPE_AVG=Срд
+CONN_TYPE_LOW=Низк
+CONN_TYPE_BAD=Плх
+
+; ============================================================================
+; USER/GAME STATUS
+; ============================================================================
+STATUS_PLAYING=Играет
+STATUS_IDLE=Свободен
+STATUS_WAITING=Ожидает
+
+; ============================================================================
+; COLUMN HEADERS - Users List
+; ============================================================================
+COL_NAME=Имя
+COL_PING=Пинг
+COL_UID=UID
+COL_STATUS=Статус
+COL_CONNECTION=Подключение
+
+; ============================================================================
+; COLUMN HEADERS - Lobby Player List
+; ============================================================================
+COL_NICK=Ник
+COL_DELAY=Задержка
+
+; ============================================================================
+; COLUMN HEADERS - Games List
+; ============================================================================
+COL_GAME=Игра
+COL_GAME_ID=ID игры
+COL_EMULATOR=Эмулятор
+COL_USER=Игрок
+COL_USERS=Игроки
+
+; ============================================================================
+; COLUMN HEADERS - Server List
+; ============================================================================
+COL_IP=IP
+COL_LOCATION=Местоположение
+COL_VER=вер
+
+; ============================================================================
+; COLUMN HEADERS - Waiting Games List
+; ============================================================================
+COL_WAITING=Ожидание
+COL_SERVER=Сервер
+COL_HOST=Хост
+COL_CODE=Код
+
+; ============================================================================
+; COLUMN HEADERS - Stored Users List
+; ============================================================================
+; COL_NAME and COL_IP already defined above
+
+; ============================================================================
+; COLUMN HEADERS - Playback Recordings List
+; ============================================================================
+COL_DATE=Дата
+COL_PLAYERS=Игроки
+COL_DURATION=Длительность
+COL_SIZE=Размер
+COL_FILENAME=Имя файла
+
+; ============================================================================
+; FRAME DELAY OPTIONS (Kaillera Server Select)
+; ============================================================================
+FD_AUTO=Авто
+FD_1=1 кадр (8мс)
+FD_2=2 кадра (24мс)
+FD_3=3 кадра (40мс)
+FD_4=4 кадра (56мс)
+FD_5=5 кадров (72мс)
+FD_6=6 кадров (88мс)
+FD_7=7 кадров (104мс)
+FD_8=8 кадров (120мс)
+FD_9=9 кадров (136мс)
+
+; ============================================================================
+; FRAME DELAY OPTIONS (P2P Connection Window)
+; ============================================================================
+P2P_FD_AUTO=Авто
+P2P_FD_1=1 кадр (0-33мс)
+P2P_FD_2=2 кадра (34-67мс)
+P2P_FD_3=3 кадра (68-99мс)
+P2P_FD_4=4 кадра (100-133мс)
+P2P_FD_5=5 кадров (134-167мс)
+P2P_FD_6=6 кадров (168-199мс)
+P2P_FD_7=7 кадров (200-233мс)
+P2P_FD_8=8 кадров (234-267мс)
+P2P_FD_9=9 кадров (268+мс)
+
+; ============================================================================
+; OPTIONS DIALOG COMBO VALUES
+; ============================================================================
+OPT_FALSE=Нет
+OPT_TRUE=Да
+
+; ============================================================================
+; CHAT/SYSTEM MESSAGES - Kaillera UI
+; ============================================================================
+CHAT_MSG_FORMAT=<%s> %s
+CHAT_PM_PREFIX=Кому: <
+CHAT_PM_FORMAT=%s- %s\r\n
+CHAT_MOTD_FORMAT=- %s
+CHAT_JOIN_FORMAT=* Вошёл: %s (Пинг: %i)
+CHAT_PART_FORMAT=* Вышел: %s
+CHAT_PLAYER_JOIN_FORMAT=* Вошёл: %s
+CHAT_PLAYER_PART_FORMAT=* Вышел: %s
+CHAT_KICKED=* Вас выкинули из игры
+CHAT_LOGIN_STATUS_FORMAT=* %s
+CHAT_DROPPED_FORMAT=* Отключён: %s (Игрок %i)
+CHAT_STARTING_FORMAT=* Запуск: %s (%i/%i)
+CHAT_STARTING_HINT=- нажмите "Сброс", если эмулятор завис
+CHAT_MINIMAL_GUI_NOTICE=- Включён режим минимального обновления GUI. Элементы интерфейса вне вашей игры будут отключены. Пожалуйста, переподключитесь к серверу после завершения игры.
+CHAT_RECORDING_NOTICE=- ваша игра будет записана
+CHAT_NETSYNC_WAIT=ожидание других игроков
+
+; ============================================================================
+; NON-GAME LOBBY NAMES
+; ============================================================================
+LOBBY_AWAY=*Отошёл (оставьте сообщения)
+LOBBY_CHAT=*Общение (не игра)
+
+; ============================================================================
+; ERROR MESSAGES - Kaillera UI
+; ============================================================================
+ERR_JOIN_RUNNING_GAME=Подключение к запущенной игре запрещено
+ERR_EMU_MISMATCH_BODY=Несовпадение эмулятора/версии — возможна десинхронизация.\nПродолжить?
+ERR_EMU_MISMATCH_TITLE=Ошибка
+ERR_ROM_NOT_FOUND=Ром '%s' отсутствует в вашем списке.
+ERR_NO_GAME_IN_LOBBY=В этом лобби нет игры для запуска.
+ERR_CORE_INIT_FAILED=Ошибка инициализации ядра
+
+; ============================================================================
+; CONTEXT MENU ITEMS
+; ============================================================================
+CTX_SEND_MESSAGE=Отправить сообщение
+CTX_FIND_USER=Найти игрока
+CTX_IGNORE=Игнорировать
+CTX_UNIGNORE=Убрать из игнора
+CTX_CREATE=Создать
+CTX_JOIN=Подключиться
+
+; ============================================================================
+; GAME LIST MENU
+; ============================================================================
+GAME_SWAP=Обмен
+GAME_CREATE=Создать
+
+; ============================================================================
+; WINDOW TITLES - Dynamic
+; ============================================================================
+TITLE_CONNECTING=Подключение к %s
+TITLE_CONNECTED=Подключено к %s (%i игроков и %i игр)
+TITLE_IN_GAME=Игра %s
+TITLE_HOSTING_P2P=Хостинг P2P
+TITLE_P2P_CONNECTION=Окно подключения P2P
+TITLE_P2P_CONNECTED=Подключено к %s (%s)
+
+; ============================================================================
+; PING DISPLAY
+; ============================================================================
+PING_NA=Н/Д
+PING_FORMAT=пинг: %i мс пл: %i
+
+; ============================================================================
+; SPEED/DELAY DISPLAY
+; ============================================================================
+SPEED_FORMAT=%i fps/%i pps
+DELAY_FORMAT=%i кадров
+DELAY_FRAMES=%i кадров
+
+; ============================================================================
+; ADVERTISE MESSAGES
+; ============================================================================
+ADV_HOST_FORMAT=%s - %d игрок(ов)
+ADV_JOIN_FORMAT=<%s> | %s - %d игрок(ов)
+
+; ============================================================================
+; QUIT MESSAGE
+; ============================================================================
+QUIT_MSG=Open Kaillera - n02
+
+; ============================================================================
+; P2P CHAT/SYSTEM MESSAGES
+; ============================================================================
+P2P_NAT_FALLBACK_FORMAT=NAT-обход: %s. Откат на %s:%i
+P2P_NAT_FALLBACK_NO_NAME=NAT-обход: откат на %s:%i
+P2P_NAT_FALLBACK_FAILED=NAT-обход: не удалось подключиться через откат
+P2P_CHAT_FORMAT=<%s> %s
+P2P_HALFDELAY_MSG=Режим половинной задержки %s (для 30fps игр: Mario Kart, 1080, THPS)
+P2P_HALFDELAY_ENABLED=ВКЛЮЧЁН
+P2P_HALFDELAY_DISABLED=ВЫКЛЮЧЁН
+P2P_UNKNOWN_CMD=Неизвестная команда "%s"
+P2P_DROPPING_GAME=сброс игры
+P2P_CODE_COPIED=Код подключения скопирован в буфер обмена
+P2P_CODE_RECEIVED=Получен код подключения: %s
+P2P_NAT_CONNECTING=NAT-обход: подключение к %s:%i
+P2P_NAT_CONNECT_ERROR=NAT-обход: ошибка подключения к %s:%i
+P2P_NAT_UNKNOWN_TOKEN=NAT-обход: игнорирование PEER для неизвестного токена
+P2P_NAT_PEER=NAT-обход: пир %s:%i
+P2P_NAT_SERVER_RESP=NAT-обход: ответ сервера: %s
+P2P_NAT_OK=NAT-обход <- OK
+P2P_IP_COPIED=IP скопирован в буфер обмена.
+P2P_YOUR_IP=Ваш IP-адрес: %s
+P2P_PEER_LEFT=Пир отключился
+P2P_HOSTING_ON_PORT=Хостинг %s на порту %i
+P2P_HOSTING_WARNING=ВНИМАНИЕ: Для хостинга необходимо пробросить порты и открыть их в брандмауэре.
+P2P_NAT_LOOKUP=NAT-обход: поиск хоста для кода %s
+P2P_CONNECTING_TO=Подключение к %s:%i
+P2P_SOCKET_ERROR=Ошибка инициализации сокетов
+P2P_NAT_UNAVAILABLE=Не удалось связаться с NAT-сервером, хостинг по IP. Возможно, потребуется ручной проброс портов.
+P2P_NAT_BUSY=NAT-обход: хост занят. Подождите и попробуйте снова.
+P2P_NAT_TIMEOUT=NAT-обход: время ожидания истекло (попробуйте прямой IP, проброс портов или серверный режим)
+P2P_GAME_NOT_FOUND=ОШИБКА: Игра не найдена в локальном списке
+
+; ============================================================================
+; P2P NAT TRAVERSAL DEBUG MESSAGES
+; ============================================================================
+P2P_NAT_OUT=NAT-обход -> %s:%i: %s
+P2P_NAT_PUNCH=NAT-обход -> %s:%i: пробив x10
+P2P_NAT_REGOK_IGNORED=NAT-обход <- REGOK (игнорировано; не хостинг по коду)
+P2P_NAT_REGOK=NAT-обход <- REGOK код=%s наблюдаемый=%s:%s
+P2P_NAT_HOST_IGNORED=NAT-обход <- HOST (игнорировано; не подключение по коду)
+P2P_NAT_HOST=NAT-обход <- HOST %s:%i
+P2P_NAT_PEER_IGNORED=NAT-обход <- PEER (игнорировано; не хостинг по коду)
+P2P_NAT_PEER_INFO=NAT-обход <- PEER %s:%i
+P2P_NAT_ERR=NAT-обход <- ОШИБКА %s
+P2P_NAT_UNHANDLED=NAT-обход <- (необработано) %s
+P2P_SSRV=SSRV: %s
+
+; ============================================================================
+; P2P TAB NAMES
+; ============================================================================
+TAB_HOST=Хо&ст
+TAB_CONNECT=Подк&лючиться
+
+; ============================================================================
+; P2P ERROR MESSAGES
+; ============================================================================
+P2P_ERR_CONNECT=Ошибка подключения к указанному хосту/порту
+P2P_ERR_NO_GAME=Выберите игру из списка
+
+; ============================================================================
+; P2P HOST CODE UI
+; ============================================================================
+P2P_CHECKING_IP=(проверка IP)
+
+; ============================================================================
+; P2P CORE MESSAGES
+; ============================================================================
+P2P_CANT_QUIT=Нельзя выйти во время игры
+P2P_READY_MARKED=Вы отмечены как %s
+P2P_READY=готовы
+P2P_NOT_READY=не готовы
+P2P_MUFFIN_LOADED=Muffin загружен, ожидание Donut.
+P2P_DONUT_LOADED=Donut загружен.
+P2P_CONN_REQUEST=Запрос на подключение от %s (%s).. Ожидание подтверждения...
+P2P_EMU_DIFF_ALERT=Несовпадение эмулятора/версии! Возможна десинхронизация!
+P2P_PEER_RECONFIRMED=Пир подтвердил подключение
+P2P_USING_VERSION_HOST=Используется версия: %s — поведение может быть непредсказуемым при разных версиях
+P2P_USING_VERSION_CLIENT=Используется версия: %s
+P2P_PEER_DROPPED_NO_GAME=Пир отключился (вероятно, нет нужной игры)
+P2P_PEER_REPLIED=Пир ответил: %s (%s)
+P2P_PEER_DROPPED_DIFF_EMU=Пир отключился (вероятно, другая версия эмулятора)
+P2P_PEER_READY_FORMAT=%s %s
+P2P_BOTH_READY=оба игрока готовы, запуск игры
+P2P_REINIT_SERVER=реинициализация сервера...
+P2P_SOCKET_INIT_ERROR=Ошибка инициализации сокета на указанном порту
+P2P_DONE=Готово
+P2P_PING_TIMEOUT=Тайм-аут пинга. Пир отключился.
+P2P_PEER_DROPPED=пир отключился
+P2P_DATA_TIMEOUT=Тайм-аут данных. Сброс игры
+P2P_EVERYONE_LOADED=== Все загружены
+P2P_CALCULATED_PING=== Расчётный пинг = %iмс
+P2P_CALCULATED_DELAY=== Расчётная задержка %i кадр(ов)
+P2P_GAMESYNC_COUNTDOWN=синхронизация игры менее чем через %i сек.
+P2P_DELAY_OVERRIDE=Расчётная задержка: %i кадров, используется переопределение: %i кадров
+P2P_30FPS_HALVED=Режим 30fps: задержка уменьшена с %i до %i кадров
+P2P_TRUE=истина
+P2P_FALSE=ложь
+P2P_IRRELEVENT=неактуально
+
+; ============================================================================
+; KAILLERA CORE MESSAGES
+; ============================================================================
+K_ERR_CONNECTING=ошибка подключения к серверу
+K_SERVER_FULL=Сервер полон
+K_LOST_CONNECTION=Соединение потеряно
+K_ALL_PLAYERS_READY=Все игроки готовы
+K_PING_SPOOF_SET=Имитация пинга установлена на %dмс
+K_PING_SPOOF_ENABLED=Имитация пинга включена: задержка %dмс
+K_PING_SPOOF_MSG=Имитация пинга: %dмс (цель: %dк)
+K_30FPS_HALVED=Режим 30fps: задержка уменьшена с %i до %i кадров
+K_SERVER_DELAY_INFO=Сервер: задержка %i кадров (пропускная=%i, conset=%i)
+K_IGNORING_GAMEBEGN=Игнорирование GAMEBEGN (запрошен выход)
+K_CONNECTING_TO=Подключение к %s:%i
+K_SERVER_REPLIED=сервер ответил
+K_LOGGING_IN=вход в систему
+
+; ============================================================================
+; PLAYER/PLAYBACK MESSAGES
+; ============================================================================
+PLAYER_FILE_TOO_SHORT=Файл слишком короткий
+PLAYER_ERR_TITLE=Ошибка
+PLAYER_EMU_MISMATCH=Несовпадение имени приложения.\nОжидалось "%s", но получено "%s".\nИспользование другого эмулятора для воспроизведения может привести к непредсказуемому поведению.\nПродолжить?
+PLAYER_ERR=Ошибка
+PLAYER_PLAYER_D=Игрок %d
+
+; ============================================================================
+; RECORDING ERROR MESSAGES
+; ============================================================================
+REC_FAILED=запись %s не удалась, ошибка = %i
+REC_ERROR_TITLE=запись — ошибка
+
+; ============================================================================
+; GUI THREAD ERROR
+; ============================================================================
+GUI_THREAD_ERR_BODY=Пожалуйста, перезапустите Kaillera
+GUI_THREAD_ERR_TITLE=Исключение потока GUI
+
+; ============================================================================
+; STATS THREAD ERROR
+; ============================================================================
+STATS_THREAD_EXCEPTION=Исключение потока статистики
+
+; ============================================================================
+; EXCEPTION DIALOG
+; ============================================================================
+EXCEPTION_RECORD_FORMAT=EXCEPTION_RECORD {\r\n\tExceptionCode=%s;\r\n\tExceptionFlags=%i;\r\n\tExceptionAddress=0x%08x;\r\n\tExceptionInformation=%i;\r\n};
+TRACE_STACK_HEADER=СТЕК ВЫЗОВОВ: \r\n
+
+; ============================================================================
+; EXCEPTION CODE NAMES
+; ============================================================================
+EXCEPTION_ACCESS_VIOLATION=EXCEPTION_ACCESS_VIOLATION
+EXCEPTION_ARRAY_BOUNDS_EXCEEDED=EXCEPTION_ARRAY_BOUNDS_EXCEEDED
+EXCEPTION_BREAKPOINT=EXCEPTION_BREAKPOINT
+EXCEPTION_DATATYPE_MISALIGNMENT=EXCEPTION_DATATYPE_MISALIGNMENT
+EXCEPTION_FLT_DENORMAL_OPERAND=EXCEPTION_FLT_DENORMAL_OPERAND
+EXCEPTION_FLT_DIVIDE_BY_ZERO=EXCEPTION_FLT_DIVIDE_BY_ZERO
+EXCEPTION_FLT_INEXACT_RESULT=EXCEPTION_FLT_INEXACT_RESULT
+EXCEPTION_FLT_INVALID_OPERATION=EXCEPTION_FLT_INVALID_OPERATION
+EXCEPTION_FLT_OVERFLOW=EXCEPTION_FLT_OVERFLOW
+EXCEPTION_FLT_STACK_CHECK=EXCEPTION_FLT_STACK_CHECK
+EXCEPTION_FLT_UNDERFLOW=EXCEPTION_FLT_UNDERFLOW
+EXCEPTION_ILLEGAL_INSTRUCTION=EXCEPTION_ILLEGAL_INSTRUCTION
+EXCEPTION_IN_PAGE_ERROR=EXCEPTION_IN_PAGE_ERROR
+EXCEPTION_INT_DIVIDE_BY_ZERO=EXCEPTION_INT_DIVIDE_BY_ZERO
+EXCEPTION_INT_OVERFLOW=EXCEPTION_INT_OVERFLOW
+EXCEPTION_INVALID_DISPOSITION=EXCEPTION_INVALID_DISPOSITION
+EXCEPTION_NONCONTINUABLE_EXCEPTION=EXCEPTION_NONCONTINUABLE_EXCEPTION
+EXCEPTION_PRIV_INSTRUCTION=EXCEPTION_PRIV_INSTRUCTION
+EXCEPTION_SINGLE_STEP=EXCEPTION_SINGLE_STEP
+EXCEPTION_STACK_OVERFLOW=EXCEPTION_STACK_OVERFLOW
+
+; ============================================================================
+; STATS DISPLAY
+; ============================================================================
+STATS_IN_HEADER=вход\n--------------------\nскорость: %i/с (%i Б/с)\nвсего: %i (%i байт)\n\n
+STATS_OUT_HEADER=выход\n--------------------\nскорость: %i/с (%i Б/с)\nвсего: %i (%i байт)\n\n
+STATS_OTHERS=прочее\n--------------------\nпотери: %i\nповторных: %i/%i\nнаруш. порядка: %i\naddrdism: %i\ncoundism: %i
+STATS_P2P=\n\np2p\n--------------------\n%s
+
+; ============================================================================
+; TIMESTAMP
+; ============================================================================
+TIMESTAMP_AM=AM
+TIMESTAMP_PM=PM
+TIMESTAMP_FORMAT=[%d:%02d %s]
+
+; ============================================================================
+; MASTER SERVER LIST STATUS MESSAGES
+; ============================================================================
+MSL_PINGED_SERVERS=проверено серверов: %i
+MSL_CLEANING_UP=Очистка...
+MSL_SERVERS_FOUND=Найдено серверов: %i
+MSL_ERROR_REFRESHING=Ошибка обновления списка
+MSL_DOWNLOADING=Загрузка списка...
+MSL_STOP=Стоп
+MSL_REFRESH=Обновить
+MSL_PINGING=Пинг списка...
+MSL_PINGED_GAMES=проверено игр: %i
+MSL_GAMES_FOUND=Найдено игр: %i
+MSL_MASTER_WAITING=Список ожидающих игр мастер-серверов...
+MSL_MASTER_SERVERS=Список мастер-серверов...
+MSL_PARSING=Разбор списка...
+MSL_NO_GAMES=Игры не найдены
+MSL_WAITING_GAMES_FOUND=Найдено ожидающих игр: %i
+MSL_WAITING_GAMES=ожидающие игры...
+
+; ============================================================================
+; ADD/EDIT DIALOG TITLES
+; ============================================================================
+DLG_TITLE_EDIT=Изменение
+DLG_TITLE_ADD=Добавление
+
+; ============================================================================
+; VERSION INFO (used in chat messages and window titles)
+; ============================================================================
+N02_WINDOW_TITLE=N02 %s
