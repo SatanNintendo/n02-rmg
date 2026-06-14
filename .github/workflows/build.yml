@@ -1,0 +1,125 @@
+name: Build n02 Kaillera
+
+# ============================================================================
+# Manual build workflow for n02 Kaillera (kailleraclient.dll)
+# ============================================================================
+# Triggers only on manual dispatch (Actions tab -> Run workflow).
+#
+# Builds both x64 and Win32 (x86) Release configurations.
+#
+# Notes:
+#   - The vcxproj uses PlatformToolset=v141_xp and WindowsTargetPlatformVersion=7.0
+#     which are not available on GitHub Actions runners. This workflow overrides them
+#     to v143 (VS2022) and 10.0 respectively. The resulting DLLs require Windows 10+
+#     and will NOT run on Windows XP.
+#   - If you need XP-compatible builds, use the local build.bat with VS2019 + v141_xp.
+# ============================================================================
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build kailleraclient.dll
+    runs-on: windows-latest
+
+    steps:
+      # ------------------------------------------------------------------
+      # Checkout
+      # ------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------
+      # Setup MSVC environment (adds msbuild/cl/link to PATH)
+      # ------------------------------------------------------------------
+      - name: Setup MSVC Developer Environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      # ------------------------------------------------------------------
+      # Build x64
+      # ------------------------------------------------------------------
+      - name: Build (x64)
+        run: >
+          msbuild n02p.sln
+          /p:Configuration=Release
+          /p:Platform=x64
+          /p:PlatformToolset=v143
+          /p:WindowsTargetPlatformVersion=10.0
+          /verbosity:minimal
+          /nologo
+
+      # ------------------------------------------------------------------
+      # Build Win32
+      # ------------------------------------------------------------------
+      - name: Build (Win32)
+        run: >
+          msbuild n02p.sln
+          /p:Configuration=Release
+          /p:Platform=x86
+          /p:PlatformToolset=v143
+          /p:WindowsTargetPlatformVersion=10.0
+          /verbosity:minimal
+          /nologo
+
+      # ------------------------------------------------------------------
+      # Verify that both DLLs were produced
+      # ------------------------------------------------------------------
+      - name: Verify build outputs
+        shell: pwsh
+        run: |
+          $expected = @(
+            @{ Path = "x64\Release\kailleraclient.dll"; Arch = "x64" },
+            @{ Path = "Release\kailleraclient.dll";     Arch = "Win32" }
+          )
+          $allOk = $true
+          foreach ($item in $expected) {
+            if (Test-Path $item.Path) {
+              $size = (Get-Item $item.Path).Length
+              Write-Host "OK: $($item.Arch) -> $($item.Path) ($size bytes)"
+            } else {
+              Write-Error "MISSING: $($item.Arch) -> $($item.Path)"
+              $allOk = $false
+            }
+          }
+          if (-not $allOk) { exit 1 }
+
+      # ------------------------------------------------------------------
+      # Package artifacts into a clean directory structure
+      # ------------------------------------------------------------------
+      - name: Package artifacts
+        shell: pwsh
+        run: |
+          $dirs = @("publish\x64", "publish\Win32", "publish\KailleraLang")
+          foreach ($d in $dirs) {
+            New-Item -ItemType Directory -Force -Path $d | Out-Null
+          }
+
+          # DLLs
+          Copy-Item "x64\Release\kailleraclient.dll"    -Destination "publish\x64\"
+          Copy-Item "Release\kailleraclient.dll"         -Destination "publish\Win32\"
+
+          # Language files
+          Copy-Item "KailleraLang\*.lng"                  -Destination "publish\KailleraLang\"
+
+          # Config file
+          Copy-Item "n02.ini"                             -Destination "publish\"
+
+          Write-Host ""
+          Write-Host "=== Package contents ==="
+          Get-ChildItem -Recurse "publish" | ForEach-Object {
+            $rel = $_.FullName.Replace("$PWD\publish\", "")
+            if (-not $_.PSIsContainer) {
+              Write-Host ("  {0,-40} {1,10} bytes" -f $rel, $_.Length)
+            }
+          }
+
+      # ------------------------------------------------------------------
+      # Upload as GitHub Actions artifact (downloadable from the run page)
+      # ------------------------------------------------------------------
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: n02-kaillera-build
+          path: publish/
+          retention-days: 30
