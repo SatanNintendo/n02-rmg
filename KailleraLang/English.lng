@@ -1,0 +1,592 @@
+; N02 Kaillera Language File - English
+; ====================================
+; This file contains all user-facing strings used by the N02 Kaillera client.
+; To create a translation, copy this file and translate the values.
+; Save as <LanguageName>.lng in the KailleraLang folder.
+; The client will auto-detect .lng files in the KailleraLang folder.
+;
+; Format: KEY=VALUE
+; Lines starting with ; are comments. Empty lines are ignored.
+; Keys must not be changed — only translate the values.
+; Format strings like %s, %i, %d must be preserved in translations.
+; \n represents a newline, \r\n represents a Windows newline.
+; The first line after this comment block (LANG_NAME) is the display name.
+
+LANG_NAME=English
+
+; ============================================================================
+; DIALOG CAPTIONS
+; ============================================================================
+CAPTION_MAIN=N02
+CAPTION_SERVER_SELECT=N02
+CAPTION_CONNECTION_WINDOW=Connection Window
+CAPTION_ITEM_EDIT=N02
+CAPTION_ABOUT=About
+CAPTION_CUSTOM_IP=Custom Server IP
+CAPTION_MASTER_LIST=N02
+CAPTION_SERVER_ROOM=N02
+CAPTION_ROOM_OPTIONS=Room Options
+CAPTION_PLAYER=Player
+CAPTION_EXCEPTION=Exception
+CAPTION_STATS=Stats
+
+; ============================================================================
+; COMMON BUTTONS
+; ============================================================================
+BTN_OK=OK
+BTN_CANCEL=Cancel
+BTN_CLOSE=Close
+BTN_ADD=Add
+BTN_EDIT=Edit
+BTN_DELETE=Delete
+BTN_CONNECT=Connect
+BTN_REFRESH=Refresh
+BTN_PING=Ping
+BTN_TRACE=Trace
+BTN_ABOUT=About
+BTN_OPTIONS=Options
+BTN_COPY=Copy
+BTN_RESET=Reset
+BTN_PLAY=Play
+BTN_STOP=Stop
+BTN_DELETE_REC=Delete
+BTN_OPEN_FOLDER=Open Folder
+
+; ============================================================================
+; MAIN DIALOG (P2P Selection)
+; ============================================================================
+MAIN_BTN_HOST=Ho&st
+MAIN_BTN_CONNECT=&Connect
+MAIN_BTN_PASTE_GO=Paste && Go
+MAIN_BTN_WAITING_GAMES=&waiting games
+MAIN_LBL_IP_CODE=IP/Code:
+MAIN_LBL_GAME=Game:
+MAIN_LBL_HOST_PORT=Host port:
+MAIN_LBL_NICK=Nick:
+MAIN_LBL_STORED=Stored:
+MAIN_GRP_MODE=Mode
+MAIN_RB_P2P=P2P
+MAIN_RB_SERVER=Server
+MAIN_RB_PLAYBACK=Playback
+
+; ============================================================================
+; SERVER SELECT DIALOG (Kaillera Mode)
+; ============================================================================
+SSDLG_BTN_CUSTOM_IP=Custom Server IP
+SSDLG_BTN_WAITING_GAMES=Waiting Games
+SSDLG_BTN_LIVE_SERVER_LIST=Live Server List
+SSDLG_LBL_FRAME_DELAY=Frame Delay:
+SSDLG_GRP_LOCAL_LIST=Local List
+
+; ============================================================================
+; CONNECTION DIALOG (P2P Game Room)
+; ============================================================================
+CONN_BTN_CHAT=&Chat
+CONN_CHK_READY=Ready
+CONN_CHK_RECORD=&Record game
+CONN_BTN_ADVANCED=Advanced
+CONN_BTN_COPY_IP=Copy IP
+CONN_BTN_RETR=re&tr
+CONN_BTN_PING=ping
+CONN_BTN_DROP_GAME=&Drop Game
+CONN_CHK_ENLIST=Show on public game list
+CONN_GRP_HOST=Host:
+CONN_LBL_FRAME_DELAY=Frame Delay:
+CONN_LBL_CONNECT_CODE=Connect code:
+CONN_LBL_WAITING=(waiting)
+CONN_BTN_COPY_CODE=Copy
+CONN_BTN_EJECT_PEER=Eject peer
+CONN_BTN_DONT_ALLOW_LIST=Dont allow list
+CONN_BTN_STATS=stats
+
+; ============================================================================
+; ITEM EDIT DIALOG (Add/Edit Server or Stored User)
+; ============================================================================
+ITEMEDIT_LBL_NAME=Name:
+ITEMEDIT_LBL_IP=IP:
+
+; ============================================================================
+; ABOUT DIALOG
+; ============================================================================
+ABOUT_LBL_CREDITS=Kaillera protocol and API:\n(c) 2001-2002 Christophe Thibault\n------------------------------------------------------
+ABOUT_LBL_N02=n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera
+ABOUT_BTN_WEBSITE=Open Kaillera Website
+ABOUT_BTN_USAGE_POLICY=Useage Policy
+ABOUT_BTN_LICENSE=License
+
+; ============================================================================
+; CUSTOM IP DIALOG
+; ============================================================================
+CUSTOMIP_BTN_CONNECT=Connect
+CUSTOMIP_LBL_IP=IP:
+
+; ============================================================================
+; MASTER SERVER LIST DIALOG
+; ============================================================================
+MLIST_BTN_CONNECT=&Connect
+MLIST_BTN_CLOSE=Clo&se
+MLIST_BTN_ADD_LOCAL=&Add to local list
+MLIST_BTN_REFRESH=&Refresh
+MLIST_BTN_WAITING_GAMES=&Waiting Games
+
+; ============================================================================
+; SERVER ROOM DIALOG (Kaillera Game Room)
+; ============================================================================
+SDLG_BTN_CHAT=Chat
+SDLG_BTN_START=&Start
+SDLG_BTN_DROP=Drop
+SDLG_BTN_LEAVE=Leave
+SDLG_BTN_KICK=&Kick
+SDLG_BTN_LAGSTAT=Lagstat
+SDLG_CHK_RECORD=&Record game
+SDLG_LBL_DELAY=delay: 3 frames
+SDLG_LBL_SPEED=speed: 58fps
+SDLG_BTN_CREATE=Create
+SDLG_BTN_GAME_CHAT=Chat
+SDLG_LBL_JOIN_MSG=Join msg:
+SDLG_BTN_OPTIONS=Options
+SDLG_BTN_ADVERTISE=Advertise
+
+; ============================================================================
+; ROOM OPTIONS DIALOG
+; ============================================================================
+OPTS_LBL_MAX_PLAYERS=Max players:
+OPTS_LBL_MAX_PING=Max ping:
+OPTS_LBL_ON_USER_JOIN=On user join:
+OPTS_LBL_WINDOW_FLASH=Window flash:
+OPTS_LBL_BEEP=Beep:
+
+; ============================================================================
+; PLAYER/PLAYBACK DIALOG
+; ============================================================================
+PLAYER_RB_P2P=P2P
+PLAYER_RB_SERVER=Server
+PLAYER_RB_PLAYBACK=Playback
+PLAYER_GRP_MODE=Mode
+
+; ============================================================================
+; ERROR/EXCEPTION DIALOG
+; ============================================================================
+ERROR_BTN_REPORT=Report as bug
+
+; ============================================================================
+; STATS DIALOG
+; ============================================================================
+STATS_BTN_COPY=Copy
+
+; ============================================================================
+; MODE COMBO ITEMS
+; ============================================================================
+MODE_1_P2P=1. P2P
+MODE_2_SERVER=2. Server
+MODE_3_PLAYBACK=3. Playback
+MODE_P2P_ONLY=P2P
+
+; ============================================================================
+; CONNECTION TYPES
+; ============================================================================
+CONN_TYPE_LAN=LAN
+CONN_TYPE_EXC=Exc
+CONN_TYPE_GOOD=Good
+CONN_TYPE_AVG=Avg
+CONN_TYPE_LOW=Low
+CONN_TYPE_BAD=Bad
+
+; ============================================================================
+; USER/GAME STATUS
+; ============================================================================
+STATUS_PLAYING=Playing
+STATUS_IDLE=Idle
+STATUS_WAITING=Waiting
+
+; ============================================================================
+; COLUMN HEADERS - Users List
+; ============================================================================
+COL_NAME=Name
+COL_PING=Ping
+COL_UID=UID
+COL_STATUS=Status
+COL_CONNECTION=Connection
+
+; ============================================================================
+; COLUMN HEADERS - Lobby Player List
+; ============================================================================
+COL_NICK=Nick
+COL_DELAY=Delay
+
+; ============================================================================
+; COLUMN HEADERS - Games List
+; ============================================================================
+COL_GAME=Game
+COL_GAME_ID=GameID
+COL_EMULATOR=Emulator
+COL_USER=User
+COL_USERS=Users
+
+; ============================================================================
+; COLUMN HEADERS - Server List
+; ============================================================================
+COL_IP=IP
+COL_LOCATION=Location
+COL_VER=ver
+
+; ============================================================================
+; COLUMN HEADERS - Waiting Games List
+; ============================================================================
+COL_WAITING=Waiting
+COL_SERVER=Server
+COL_HOST=Host
+COL_CODE=Code
+
+; ============================================================================
+; COLUMN HEADERS - Stored Users List
+; ============================================================================
+; COL_NAME and COL_IP already defined above
+
+; ============================================================================
+; COLUMN HEADERS - Playback Recordings List
+; ============================================================================
+COL_DATE=Date
+COL_PLAYERS=Players
+COL_DURATION=Duration
+COL_SIZE=Size
+COL_FILENAME=Filename
+
+; ============================================================================
+; FRAME DELAY OPTIONS (Kaillera Server Select)
+; ============================================================================
+FD_AUTO=Auto
+FD_1=1 frame (8ms)
+FD_2=2 frames (24ms)
+FD_3=3 frames (40ms)
+FD_4=4 frames (56ms)
+FD_5=5 frames (72ms)
+FD_6=6 frames (88ms)
+FD_7=7 frames (104ms)
+FD_8=8 frames (120ms)
+FD_9=9 frames (136ms)
+
+; ============================================================================
+; FRAME DELAY OPTIONS (P2P Connection Window)
+; ============================================================================
+P2P_FD_AUTO=Auto
+P2P_FD_1=1 frame (0-33ms)
+P2P_FD_2=2 frames (34-67ms)
+P2P_FD_3=3 frames (68-99ms)
+P2P_FD_4=4 frames (100-133ms)
+P2P_FD_5=5 frames (134-167ms)
+P2P_FD_6=6 frames (168-199ms)
+P2P_FD_7=7 frames (200-233ms)
+P2P_FD_8=8 frames (234-267ms)
+P2P_FD_9=9 frames (268+ms)
+
+; ============================================================================
+; OPTIONS DIALOG COMBO VALUES
+; ============================================================================
+OPT_FALSE=False
+OPT_TRUE=True
+
+; ============================================================================
+; CHAT/SYSTEM MESSAGES - Kaillera UI
+; ============================================================================
+CHAT_MSG_FORMAT=<%s> %s
+CHAT_PM_PREFIX=TO: <
+CHAT_PM_FORMAT=%s- %s\r\n
+CHAT_MOTD_FORMAT=- %s
+CHAT_JOIN_FORMAT=* Joins: %s (Ping: %i)
+CHAT_PART_FORMAT=* Parts: %s
+CHAT_PLAYER_JOIN_FORMAT=* Joins: %s
+CHAT_PLAYER_PART_FORMAT=* Parts: %s
+CHAT_KICKED=* You have been kicked out of the game
+CHAT_LOGIN_STATUS_FORMAT=* %s
+CHAT_DROPPED_FORMAT=* Dropped: %s (Player %i)
+CHAT_STARTING_FORMAT=* Starting: %s (%i/%i)
+CHAT_STARTING_HINT=- press "Drop" if emulator fails
+CHAT_MINIMAL_GUI_NOTICE=- Minimal gui update mode is on. GUI related items outside your game will be disabled. Please reconnect to server once you've finished playing.
+CHAT_RECORDING_NOTICE=- your game will be recorded
+CHAT_NETSYNC_WAIT=waiting for others
+
+; ============================================================================
+; NON-GAME LOBBY NAMES
+; ============================================================================
+LOBBY_AWAY=*Away (leave messages)
+LOBBY_CHAT=*Chat (not game)
+
+; ============================================================================
+; ERROR MESSAGES - Kaillera UI
+; ============================================================================
+ERR_JOIN_RUNNING_GAME=Joining running game is not allowed
+ERR_EMU_MISMATCH_BODY=Emulator/version mismatch and the game may desync.\nDo you want to continue?
+ERR_EMU_MISMATCH_TITLE=Error
+ERR_ROM_NOT_FOUND=The rom '%s' is not in your list.
+ERR_NO_GAME_IN_LOBBY=This lobby has no game to start.
+ERR_CORE_INIT_FAILED=Core Initialization Failed
+
+; ============================================================================
+; CONTEXT MENU ITEMS
+; ============================================================================
+CTX_SEND_MESSAGE=Send Message
+CTX_FIND_USER=Find user
+CTX_IGNORE=Ignore
+CTX_UNIGNORE=Unignore
+CTX_CREATE=Create
+CTX_JOIN=Join
+
+; ============================================================================
+; GAME LIST MENU
+; ============================================================================
+GAME_SWAP=Swap
+GAME_CREATE=Create
+
+; ============================================================================
+; WINDOW TITLES - Dynamic
+; ============================================================================
+TITLE_CONNECTING=Connecting to %s
+TITLE_CONNECTED=Connected to %s (%i users & %i games)
+TITLE_IN_GAME=Game %s
+TITLE_HOSTING_P2P=Hosting P2P
+TITLE_P2P_CONNECTION=P2P Connection Window
+TITLE_P2P_CONNECTED=Connected to %s (%s)
+
+; ============================================================================
+; PING DISPLAY
+; ============================================================================
+PING_NA=N/A
+PING_FORMAT=ping: %i ms pl: %i
+
+; ============================================================================
+; SPEED/DELAY DISPLAY
+; ============================================================================
+SPEED_FORMAT=%i fps/%i pps
+DELAY_FORMAT=%i frames
+DELAY_FRAMES=%i frames
+
+; ============================================================================
+; ADVERTISE MESSAGES
+; ============================================================================
+ADV_HOST_FORMAT=%s - %d player(s)
+ADV_JOIN_FORMAT=<%s> | %s - %d player(s)
+
+; ============================================================================
+; QUIT MESSAGE
+; ============================================================================
+QUIT_MSG=Open Kaillera - n02
+
+; ============================================================================
+; P2P CHAT/SYSTEM MESSAGES
+; ============================================================================
+P2P_NAT_FALLBACK_FORMAT=NAT traversal: %s. Falling back to %s:%i
+P2P_NAT_FALLBACK_NO_NAME=NAT traversal: falling back to %s:%i
+P2P_NAT_FALLBACK_FAILED=NAT traversal: fallback connect failed
+P2P_CHAT_FORMAT=<%s> %s
+P2P_HALFDELAY_MSG=Half delay mode %s (for 30fps games: Mario Kart, 1080, THPS)
+P2P_HALFDELAY_ENABLED=ENABLED
+P2P_HALFDELAY_DISABLED=DISABLED
+P2P_UNKNOWN_CMD=Unknown command "%s"
+P2P_DROPPING_GAME=dropping game
+P2P_CODE_COPIED=Copied connect code to clipboard
+P2P_CODE_RECEIVED=Received connect code: %s
+P2P_NAT_CONNECTING=NAT traversal: connecting to %s:%i
+P2P_NAT_CONNECT_ERROR=NAT traversal: error connecting to %s:%i
+P2P_NAT_UNKNOWN_TOKEN=NAT traversal: ignoring PEER for unknown token
+P2P_NAT_PEER=NAT traversal: peer %s:%i
+P2P_NAT_SERVER_RESP=NAT traversal: server response was: %s
+P2P_NAT_OK=NAT traversal <- OK
+P2P_IP_COPIED=Copied IP to clipboard.
+P2P_YOUR_IP=Your IP address is: %s
+P2P_PEER_LEFT=Peer left
+P2P_HOSTING_ON_PORT=Hosting %s on port %i
+P2P_HOSTING_WARNING=WARNING: Hosting requires hosting ports to be forwarded and enabled in firewalls.
+P2P_NAT_LOOKUP=NAT traversal: looking up host for code %s
+P2P_CONNECTING_TO=Connecting to %s:%i
+P2P_SOCKET_ERROR=Error initializing sockets
+P2P_NAT_UNAVAILABLE=Unable to contact NAT server, hosting by IP. You may need to manually port forward.
+P2P_NAT_BUSY=NAT traversal: host is busy. Please wait and try again.
+P2P_NAT_TIMEOUT=NAT traversal: timed out (try direct IP/port-forwarding or server mode)
+P2P_GAME_NOT_FOUND=ERROR: Game not found on your local list
+
+; ============================================================================
+; P2P NAT TRAVERSAL DEBUG MESSAGES
+; ============================================================================
+P2P_NAT_OUT=NAT traversal -> %s:%i: %s
+P2P_NAT_PUNCH=NAT traversal -> %s:%i: punch x10
+P2P_NAT_REGOK_IGNORED=NAT traversal <- REGOK (ignored; not hosting-by-code)
+P2P_NAT_REGOK=NAT traversal <- REGOK code=%s observed=%s:%s
+P2P_NAT_HOST_IGNORED=NAT traversal <- HOST (ignored; not joining-by-code)
+P2P_NAT_HOST=NAT traversal <- HOST %s:%i
+P2P_NAT_PEER_IGNORED=NAT traversal <- PEER (ignored; not hosting-by-code)
+P2P_NAT_PEER_INFO=NAT traversal <- PEER %s:%i
+P2P_NAT_ERR=NAT traversal <- ERR %s
+P2P_NAT_UNHANDLED=NAT traversal <- (unhandled) %s
+P2P_SSRV=SSRV: %s
+
+; ============================================================================
+; P2P TAB NAMES
+; ============================================================================
+TAB_HOST=Ho&st
+TAB_CONNECT=Conn&ect
+
+; ============================================================================
+; P2P ERROR MESSAGES
+; ============================================================================
+P2P_ERR_CONNECT=Error connecting to specified host/port
+P2P_ERR_NO_GAME=Pick a valid game
+
+; ============================================================================
+; P2P HOST CODE UI
+; ============================================================================
+P2P_CHECKING_IP=(checking ip)
+
+; ============================================================================
+; P2P CORE MESSAGES
+; ============================================================================
+P2P_CANT_QUIT=Cant quit while in game
+P2P_READY_MARKED=You are marked as %s
+P2P_READY=ready
+P2P_NOT_READY=not ready
+P2P_MUFFIN_LOADED=Muffin loaded, waiting for Donut.
+P2P_DONUT_LOADED=Donut loaded.
+P2P_CONN_REQUEST=Connection Request from %s (%s).. Waiting for reconfirmation...
+P2P_EMU_DIFF_ALERT=Emulator/version difference alert! Game may desync!
+P2P_PEER_RECONFIRMED=Peer reconfirmed connection
+P2P_USING_VERSION_HOST=Using version: %s - Things may behave in an unexpected manner if different versions are used
+P2P_USING_VERSION_CLIENT=Using version: %s
+P2P_PEER_DROPPED_NO_GAME=Peer dropped connection (probbly doensot have the game)
+P2P_PEER_REPLIED=Peer replied: %s (%s)
+P2P_PEER_DROPPED_DIFF_EMU=Peer dropped connection (Probably different emu version)
+P2P_PEER_READY_FORMAT=%s is %s
+P2P_BOTH_READY=both players are ready, starting game
+P2P_REINIT_SERVER=reinitializing server...
+P2P_SOCKET_INIT_ERROR=Error initializing socket at specified port
+P2P_DONE=Done
+P2P_PING_TIMEOUT=Ping timeout. Peer dropped.
+P2P_PEER_DROPPED=peer dropped
+P2P_DATA_TIMEOUT=Data timeout. Dropping game
+P2P_EVERYONE_LOADED=== Everyone Loaded
+P2P_CALCULATED_PING=== Calculated Ping = %ims
+P2P_CALCULATED_DELAY=== Calculated delay %i frame(s)
+P2P_GAMESYNC_COUNTDOWN=gamesync in less than %i second(s)
+P2P_DELAY_OVERRIDE=Calculated delay: %i frames, using override: %i frames
+P2P_30FPS_HALVED=30fps mode: halved delay from %i to %i frames
+P2P_TRUE=true
+P2P_FALSE=false
+P2P_IRRELEVENT=irrelevent
+
+; ============================================================================
+; KAILLERA CORE MESSAGES
+; ============================================================================
+K_ERR_CONNECTING=error connecting to server
+K_SERVER_FULL=Server is full
+K_LOST_CONNECTION=Lost Connection
+K_ALL_PLAYERS_READY=All players are ready
+K_PING_SPOOF_SET=Ping spoofing set to %dms
+K_PING_SPOOF_ENABLED=Ping spoofing enabled: %dms delay
+K_PING_SPOOF_MSG=Ping spoofing: %dms (target: %df)
+K_30FPS_HALVED=30fps mode: halved delay from %i to %i frames
+K_SERVER_DELAY_INFO=Server says: delay is %i frames (throughput=%i, conset=%i)
+K_IGNORING_GAMEBEGN=Ignoring GAMEBEGN (leave requested)
+K_CONNECTING_TO=Connecting to %s:%i
+K_SERVER_REPLIED=server replied
+K_LOGGING_IN=logging in
+
+; ============================================================================
+; PLAYER/PLAYBACK MESSAGES
+; ============================================================================
+PLAYER_FILE_TOO_SHORT=File too short
+PLAYER_ERR_TITLE=Error
+PLAYER_EMU_MISMATCH=Application name mismatch.\nExpected "%s" but recieved "%s".\nUsing a different emulator for playback may cause things to behave in an unexpected manner.\nDo you want to continue?
+PLAYER_ERR=Error
+PLAYER_PLAYER_D=Player %d
+
+; ============================================================================
+; RECORDING ERROR MESSAGES
+; ============================================================================
+REC_FAILED=recording %s failed error = %i
+REC_ERROR_TITLE=recording - error
+
+; ============================================================================
+; GUI THREAD ERROR
+; ============================================================================
+GUI_THREAD_ERR_BODY=Please reopen kaillera
+GUI_THREAD_ERR_TITLE=GUI thread exception
+
+; ============================================================================
+; STATS THREAD ERROR
+; ============================================================================
+STATS_THREAD_EXCEPTION=StatsThread Exception
+
+; ============================================================================
+; EXCEPTION DIALOG
+; ============================================================================
+EXCEPTION_RECORD_FORMAT=EXCEPTION_RECORD {\r\n\tExceptionCode=%s;\r\n\tExceptionFlags=%i;\r\n\tExceptionAddress=0x%08x;\r\n\tExceptionInformation=%i;\r\n};
+TRACE_STACK_HEADER=TRACE STACK: \r\n
+
+; ============================================================================
+; EXCEPTION CODE NAMES
+; ============================================================================
+EXCEPTION_ACCESS_VIOLATION=EXCEPTION_ACCESS_VIOLATION
+EXCEPTION_ARRAY_BOUNDS_EXCEEDED=EXCEPTION_ARRAY_BOUNDS_EXCEEDED
+EXCEPTION_BREAKPOINT=EXCEPTION_BREAKPOINT
+EXCEPTION_DATATYPE_MISALIGNMENT=EXCEPTION_DATATYPE_MISALIGNMENT
+EXCEPTION_FLT_DENORMAL_OPERAND=EXCEPTION_FLT_DENORMAL_OPERAND
+EXCEPTION_FLT_DIVIDE_BY_ZERO=EXCEPTION_FLT_DIVIDE_BY_ZERO
+EXCEPTION_FLT_INEXACT_RESULT=EXCEPTION_FLT_INEXACT_RESULT
+EXCEPTION_FLT_INVALID_OPERATION=EXCEPTION_FLT_INVALID_OPERATION
+EXCEPTION_FLT_OVERFLOW=EXCEPTION_FLT_OVERFLOW
+EXCEPTION_FLT_STACK_CHECK=EXCEPTION_FLT_STACK_CHECK
+EXCEPTION_FLT_UNDERFLOW=EXCEPTION_FLT_UNDERFLOW
+EXCEPTION_ILLEGAL_INSTRUCTION=EXCEPTION_ILLEGAL_INSTRUCTION
+EXCEPTION_IN_PAGE_ERROR=EXCEPTION_IN_PAGE_ERROR
+EXCEPTION_INT_DIVIDE_BY_ZERO=EXCEPTION_INT_DIVIDE_BY_ZERO
+EXCEPTION_INT_OVERFLOW=EXCEPTION_INT_OVERFLOW
+EXCEPTION_INVALID_DISPOSITION=EXCEPTION_INVALID_DISPOSITION
+EXCEPTION_NONCONTINUABLE_EXCEPTION=EXCEPTION_NONCONTINUABLE_EXCEPTION
+EXCEPTION_PRIV_INSTRUCTION=EXCEPTION_PRIV_INSTRUCTION
+EXCEPTION_SINGLE_STEP=EXCEPTION_SINGLE_STEP
+EXCEPTION_STACK_OVERFLOW=EXCEPTION_STACK_OVERFLOW
+
+; ============================================================================
+; STATS DISPLAY
+; ============================================================================
+STATS_IN_HEADER=in\n--------------------\nrate: %i/s (%i B/s)\ntotal: %i (%i Bytes)\n\n
+STATS_OUT_HEADER=out\n--------------------\nrate: %i/s (%i B/s)\ntotal: %i (%i Bytes)\n\n
+STATS_OTHERS=others\n--------------------\nloss: %i\nretransmits:%i/%i\nmisorder:%i\naddrdism:%i\ncoundism:%i
+STATS_P2P=\n\np2p\n--------------------\n%s
+
+; ============================================================================
+; TIMESTAMP
+; ============================================================================
+TIMESTAMP_AM=AM
+TIMESTAMP_PM=PM
+TIMESTAMP_FORMAT=[%d:%02d %s]
+
+; ============================================================================
+; MASTER SERVER LIST STATUS MESSAGES
+; ============================================================================
+MSL_PINGED_SERVERS=pinged %i servers
+MSL_CLEANING_UP=Cleaning up...
+MSL_SERVERS_FOUND=%i servers found
+MSL_ERROR_REFRESHING=Error refreshing list
+MSL_DOWNLOADING=Downloading list...
+MSL_STOP=Stop
+MSL_REFRESH=Refresh
+MSL_PINGING=Pinging list...
+MSL_PINGED_GAMES=pinged %i games
+MSL_GAMES_FOUND=%i games found
+MSL_MASTER_WAITING=Master servers waiting games list...
+MSL_MASTER_SERVERS=Master servers list...
+MSL_PARSING=Parsing list...
+MSL_NO_GAMES=No games found
+MSL_WAITING_GAMES_FOUND=%i waiting games found
+MSL_WAITING_GAMES=waiting games...
+
+; ============================================================================
+; ADD/EDIT DIALOG TITLES
+; ============================================================================
+DLG_TITLE_EDIT=Edit
+DLG_TITLE_ADD=Add
+
+; ============================================================================
+; VERSION INFO (used in chat messages and window titles)
+; ============================================================================
+N02_WINDOW_TITLE=N02 %s
