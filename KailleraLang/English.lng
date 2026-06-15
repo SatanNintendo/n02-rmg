@@ -113,6 +113,7 @@ ABOUT_LBL_N02=n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera
 ABOUT_BTN_WEBSITE=Open Kaillera Website
 ABOUT_BTN_USAGE_POLICY=Useage Policy
 ABOUT_BTN_LICENSE=License
+ABOUT_LBL_LANGUAGE=Language:
 
 ; ============================================================================
 ; CUSTOM IP DIALOG

@@ -164,7 +164,7 @@ BEGIN
     LTEXT           "n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera",IDC_STATIC,7,33,117,16
     PUSHBUTTON      "Useage Policy",BTN_USEAGE,45,71,54,10
     PUSHBUTTON      "License",BTN_LICENSE,7,71,38,10
-    LTEXT           "Language:",IDC_STATIC,7,55,35,8
+    LTEXT           "Language:",IDC_LANG_LABEL,7,55,35,8
     COMBOBOX        IDC_LANG_COMBO,45,53,80,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 

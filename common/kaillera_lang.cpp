@@ -160,6 +160,7 @@ static const LangEntry g_defaultEntries[] = {
     {"ABOUT_BTN_WEBSITE", "Open Kaillera Website"},
     {"ABOUT_BTN_USAGE_POLICY", "Useage Policy"},
     {"ABOUT_BTN_LICENSE", "License"},
+    {"ABOUT_LBL_LANGUAGE", "Language:"},
     /* CUSTOM IP DIALOG */
     {"CUSTOMIP_BTN_CONNECT", "Connect"},
     {"CUSTOMIP_LBL_IP", "IP:"},
@@ -872,6 +873,118 @@ int LangEnumerate(LangEnumCallback callback, void* userdata) {
 
     FindClose(hFind);
     return count;
+}
+
+const char* LangGetDisplayName(const char* fileName) {
+    static char displayName[128];
+
+    if (fileName == NULL) return "";
+
+    /* If this is the currently loaded language, use the cached name */
+    if (g_lang.langFile[0] != 0 && _stricmp(fileName, g_lang.langFile) == 0) {
+        if (g_lang.langName[0] != 0) {
+            strncpy_s(displayName, sizeof(displayName), g_lang.langName, _TRUNCATE);
+            return displayName;
+        }
+    }
+
+    /* Otherwise, quickly scan the .lng file for LANG_NAME= line */
+    char langPath[MAX_PATH];
+    if (!GetLangFolderPath(langPath, sizeof(langPath))) {
+        return fileName;
+    }
+    strcat_s(langPath, sizeof(langPath), fileName);
+    strcat_s(langPath, sizeof(langPath), ".lng");
+
+    HANDLE hFile = CreateFileA(langPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return fileName;
+    }
+
+    DWORD bytesRead;
+    DWORD fileSize = GetFileSize(hFile, NULL);
+    if (fileSize == 0 || fileSize > 1024 * 64) {
+        CloseHandle(hFile);
+        return fileName;
+    }
+
+    char* buf = (char*)malloc(fileSize + 1);
+    if (!buf) {
+        CloseHandle(hFile);
+        return fileName;
+    }
+
+    if (!ReadFile(hFile, buf, fileSize, &bytesRead, NULL)) {
+        free(buf);
+        CloseHandle(hFile);
+        return fileName;
+    }
+    CloseHandle(hFile);
+    buf[bytesRead] = 0;
+
+    /* Skip UTF-8 BOM if present */
+    char* data = buf;
+    if (bytesRead >= 3 && (unsigned char)data[0] == 0xEF &&
+        (unsigned char)data[1] == 0xBB && (unsigned char)data[2] == 0xBF) {
+        data += 3;
+    }
+
+    /* Search for LANG_NAME= line */
+    char* line = data;
+    while (line && *line) {
+        /* Skip whitespace */
+        while (*line == ' ' || *line == '\t') line++;
+        /* Skip comments and empty lines */
+        if (*line == ';' || *line == '#' || *line == '\r' || *line == '\n') {
+            line = strchr(line, '\n');
+            if (line) line++;
+            continue;
+        }
+        /* Check if this line starts with LANG_NAME= */
+        if (strncmp(line, "LANG_NAME=", 10) == 0) {
+            char* value = line + 10;
+            /* Trim trailing whitespace/CR/LF */
+            char* end = value;
+            while (*end && *end != '\r' && *end != '\n') end++;
+            size_t len = end - value;
+            if (len >= sizeof(displayName)) len = sizeof(displayName) - 1;
+            memcpy(displayName, value, len);
+            displayName[len] = 0;
+            /* Trim trailing spaces */
+            while (len > 0 && (displayName[len-1] == ' ' || displayName[len-1] == '\t')) {
+                displayName[--len] = 0;
+            }
+            /* Convert UTF-8 to ANSI for Win32 display */
+            int wlen = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, displayName, (int)len, NULL, 0);
+            if (wlen > 0) {
+                wchar_t* wbuf = (wchar_t*)malloc((wlen + 1) * sizeof(wchar_t));
+                if (wbuf) {
+                    MultiByteToWideChar(CP_UTF8, 0, displayName, (int)len, wbuf, wlen);
+                    wbuf[wlen] = 0;
+                    int alen = WideCharToMultiByte(CP_ACP, 0, wbuf, wlen, NULL, 0, NULL, NULL);
+                    if (alen > 0 && alen < (int)sizeof(displayName)) {
+                        char* abuf = (char*)malloc(alen + 1);
+                        if (abuf) {
+                            WideCharToMultiByte(CP_ACP, 0, wbuf, wlen, abuf, alen, NULL, NULL);
+                            abuf[alen] = 0;
+                            strncpy_s(displayName, sizeof(displayName), abuf, _TRUNCATE);
+                            free(abuf);
+                        }
+                    }
+                    free(wbuf);
+                }
+            }
+            free(buf);
+            return displayName;
+        }
+        line = strchr(line, '\n');
+        if (line) line++;
+    }
+
+    free(buf);
+    /* LANG_NAME not found, return the file name as fallback */
+    strncpy_s(displayName, sizeof(displayName), fileName, _TRUNCATE);
+    return displayName;
 }
 
 bool LangSetLanguage(const char* langName) {

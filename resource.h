@@ -119,6 +119,7 @@
 #define BTN_COPYLOG                     1102
 #define BTN_OPENFOLDER                  1103
 #define IDC_LANG_COMBO                  1104
+#define IDC_LANG_LABEL                  1105
 
 // Next default values for new objects
 //

@@ -2509,7 +2509,7 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
         case WM_INITDIALOG:
                 ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
                 {
-                        /* Populate language combo */
+                        /* Populate language combo with display names, storing file names as item data */
                         HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
                         if (hCombo) {
                                 const char* currentLang = LangGetFile();
@@ -2521,7 +2521,11 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
 
                                 LangEnumerate([](const char* name, void* ud) {
                                         LangEnumCtx* c = (LangEnumCtx*)ud;
-                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)name);
+                                        const char* displayName = LangGetDisplayName(name);
+                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)displayName);
+                                        /* Store the file name as item data for lookup on selection */
+                                        char* nameCopy = _strdup(name);
+                                        SendMessage(c->combo, CB_SETITEMDATA, (WPARAM)idx, nameCopy ? (LPARAM)nameCopy : 0);
                                         if (_stricmp(name, c->current) == 0) {
                                                 c->selIdx = idx;
                                         }
@@ -2553,11 +2557,14 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                                 HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
                                 int sel = (int)SendMessage(hCombo, CB_GETCURSEL, 0, 0);
                                 if (sel != CB_ERR) {
-                                        char langName[64];
-                                        SendMessage(hCombo, CB_GETLBTEXT, (WPARAM)sel, (LPARAM)langName);
-                                        if (LangSetLanguage(langName)) {
-                                                /* Notify all windows to update their language */
-                                                LangNotifyChanged();
+                                        /* Retrieve the file name from item data */
+                                        LPARAM data = SendMessage(hCombo, CB_GETITEMDATA, (WPARAM)sel, 0);
+                                        if (data != CB_ERR && data != 0) {
+                                                const char* langFile = (const char*)data;
+                                                if (LangSetLanguage(langFile)) {
+                                                        /* Notify all windows to update their language */
+                                                        LangNotifyChanged();
+                                                }
                                         }
                                 }
                         }
@@ -2566,6 +2573,41 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                 break;
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
+                {
+                        /* Rebuild the language combo with updated display names */
+                        HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
+                        if (hCombo) {
+                                /* Free old item data strings */
+                                int count = (int)SendMessage(hCombo, CB_GETCOUNT, 0, 0);
+                                for (int i = 0; i < count; i++) {
+                                        LPARAM data = SendMessage(hCombo, CB_GETITEMDATA, (WPARAM)i, 0);
+                                        if (data != CB_ERR && data != 0) {
+                                                free((char*)data);
+                                        }
+                                }
+
+                                SendMessage(hCombo, CB_RESETCONTENT, 0, 0);
+                                const char* currentLang = LangGetFile();
+                                struct LangEnumCtx {
+                                        HWND combo;
+                                        const char* current;
+                                        int selIdx;
+                                } ctx = { hCombo, currentLang, 0 };
+
+                                LangEnumerate([](const char* name, void* ud) {
+                                        LangEnumCtx* c = (LangEnumCtx*)ud;
+                                        const char* displayName = LangGetDisplayName(name);
+                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)displayName);
+                                        char* nameCopy = _strdup(name);
+                                        SendMessage(c->combo, CB_SETITEMDATA, (WPARAM)idx, nameCopy ? (LPARAM)nameCopy : 0);
+                                        if (_stricmp(name, c->current) == 0) {
+                                                c->selIdx = idx;
+                                        }
+                                }, &ctx);
+
+                                SendMessage(hCombo, CB_SETCURSEL, (WPARAM)ctx.selIdx, 0);
+                        }
+                }
                 break;
         };
         return 0;

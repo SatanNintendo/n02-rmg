@@ -56,6 +56,11 @@ int LangGetCount();
 typedef void (*LangEnumCallback)(const char* name, void* userdata);
 int LangEnumerate(LangEnumCallback callback, void* userdata);
 
+/* Get the display name (LANG_NAME value) from a specific .lng file.
+   Returns the display name if found, or the fileName itself as fallback.
+   Caller must copy the result as the buffer is reused on next call. */
+const char* LangGetDisplayName(const char* fileName);
+
 /* Reload the language system with a specific language file.
    Useful for changing language at runtime. Returns true on success. */
 bool LangSetLanguage(const char* langName);

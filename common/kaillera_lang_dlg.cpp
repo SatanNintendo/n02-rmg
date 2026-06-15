@@ -149,6 +149,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, BTN_OKAI, LNG(ABOUT_BTN_WEBSITE));
         SetDlgText(hDlg, BTN_USEAGE, LNG(ABOUT_BTN_USAGE_POLICY));
         SetDlgText(hDlg, BTN_LICENSE, LNG(ABOUT_BTN_LICENSE));
+        SetDlgText(hDlg, IDC_LANG_LABEL, LNG(ABOUT_LBL_LANGUAGE));
         /* About dialog static text labels */
         ReplaceStaticText(hDlg, "Kaillera protocol and API:\n(c) 2001-2002 Christophe Thibault\n------------------------------------------------------", LNG(ABOUT_LBL_CREDITS));
         ReplaceStaticText(hDlg, "n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera", LNG(ABOUT_LBL_N02));
