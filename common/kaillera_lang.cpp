@@ -217,6 +217,7 @@ static const LangEntry g_defaultEntries[] = {
     {"STATUS_WAITING", "Waiting"},
     /* COLUMN HEADERS - Users */
     {"COL_NAME", "Name"},
+    {"COL_SERVER_NAME", "Name"},
     {"COL_PING", "Ping"},
     {"COL_UID", "UID"},
     {"COL_STATUS", "Status"},
