@@ -39,7 +39,7 @@ char * GAME_STATUS [] = { "", "", "" };
 static char s_lobby_away[128];
 static char s_lobby_chat[128];
 
-static void InitStatusStrings();
+void InitStatusStrings();
 
 //===========================================================================
 //===========================================================================
