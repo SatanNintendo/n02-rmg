@@ -683,7 +683,7 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                                 kaillera_mslistColumnTypes[i] = 1;
                                 kaillera_mslistColumnOrder[i] = 0;
                         }
-                        kaillera_mlv.AddColumn(LNG(COL_NAME), 150);
+                        kaillera_mlv.AddColumn(LNG(COL_SERVER_NAME), 150);
                         kaillera_mlv.AddColumn(LNG(COL_EMULATOR), 120);
                         kaillera_mlv.AddColumn(LNG(COL_USER), 70);
                         kaillera_mlv.AddColumn(LNG(COL_PING), 45);
@@ -747,7 +747,7 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 kaillera_mslistColumnTypes[i] = 1;
                                 kaillera_mslistColumnOrder[i] = 0;
                         }
-                        kaillera_mlv.AddColumn(LNG(COL_NAME), 180);
+                        kaillera_mlv.AddColumn(LNG(COL_SERVER_NAME), 180);
                         kaillera_mlv.AddColumn(LNG(COL_LOCATION), 140);
                         kaillera_mlv.AddColumn(LNG(COL_PING), 60);
                         kaillera_mlv.AddColumn(LNG(COL_USERS), 50);

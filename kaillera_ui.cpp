@@ -2665,7 +2665,7 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
 
                         
                         KLSListLv.handle = GetDlgItem(hDlg, LV_ULIST);
-                        KLSListLv.AddColumn(LNG(COL_NAME), 160);
+                        KLSListLv.AddColumn(LNG(COL_SERVER_NAME), 160);
                         KLSListLv.AddColumn(LNG(COL_IP), 150);
                         KLSListLv.AddColumn(LNG(COL_PING), 60);
                         KLSListLv.FullRowSelect();
