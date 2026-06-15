@@ -78,7 +78,7 @@ static void DecodeEscapes(char* s) {
 /* ---------------------------------------------------------------------------
  * Helper: comparison function for qsort / bsearch (case-sensitive)
  * --------------------------------------------------------------------------- */
-static int LangEntryCompare(const void* a, const void* b) {
+static int __cdecl LangEntryCompare(const void* a, const void* b) {
     return strcmp(((const LangEntry*)a)->key, ((const LangEntry*)b)->key);
 }
 
