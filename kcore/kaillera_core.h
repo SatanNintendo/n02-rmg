@@ -34,7 +34,7 @@ bool kaillera_disconnect(char * quitmsg);
 bool kaillera_core_cleanup();
 int kaillera_core_get_port();
 void kaillera_chat_send(char * text);
-void kaillera_game_chat_send(char * text);
+void kaillera_game_chat_send(const char * text);
 void kaillera_kick_user (unsigned short id);
 void kaillera_join_game(unsigned int id);
 void kaillera_create_game(char * name);
