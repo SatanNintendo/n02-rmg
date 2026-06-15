@@ -8,12 +8,14 @@
 #include "kaillera_lang_dlg.h"
 #include "../resource.h"
 
-/* Helper: set dialog item text if the control exists */
-static void SetDlgText(HWND hDlg, int controlId, const char* text) {
+/* Helper: set dialog item text if the control exists. Returns true if found. */
+static bool SetDlgText(HWND hDlg, int controlId, const char* text) {
     HWND ctl = GetDlgItem(hDlg, controlId);
     if (ctl != NULL) {
         SetWindowTextA(ctl, text);
+        return true;
     }
+    return false;
 }
 
 /* Helper: set dialog caption */
@@ -149,7 +151,15 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, BTN_OKAI, LNG(ABOUT_BTN_WEBSITE));
         SetDlgText(hDlg, BTN_USEAGE, LNG(ABOUT_BTN_USAGE_POLICY));
         SetDlgText(hDlg, BTN_LICENSE, LNG(ABOUT_BTN_LICENSE));
-        SetDlgText(hDlg, IDC_LANG_LABEL, LNG(ABOUT_LBL_LANGUAGE));
+        /* Language label - try by ID first, then by text search */
+        {
+            const char* langLabelText = LNG(ABOUT_LBL_LANGUAGE);
+            if (!SetDlgText(hDlg, IDC_LANG_LABEL, langLabelText)) {
+                /* Fallback: find the static text by content */
+                ReplaceAllStaticText(hDlg, "Language:", langLabelText);
+                ReplaceAllStaticText(hDlg, "Язык:", langLabelText);
+            }
+        }
         /* About dialog static text labels */
         ReplaceStaticText(hDlg, "Kaillera protocol and API:\n(c) 2001-2002 Christophe Thibault\n------------------------------------------------------", LNG(ABOUT_LBL_CREDITS));
         ReplaceStaticText(hDlg, "n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera", LNG(ABOUT_LBL_N02));

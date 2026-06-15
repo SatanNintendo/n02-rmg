@@ -2509,7 +2509,7 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
         case WM_INITDIALOG:
                 ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
                 {
-                        /* Populate language combo with display names, storing file names as item data */
+                        /* Populate language combo as "NativeName / FileName", storing file names as item data */
                         HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
                         if (hCombo) {
                                 const char* currentLang = LangGetFile();
@@ -2522,7 +2522,14 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                                 LangEnumerate([](const char* name, void* ud) {
                                         LangEnumCtx* c = (LangEnumCtx*)ud;
                                         const char* displayName = LangGetDisplayName(name);
-                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)displayName);
+                                        /* Format: "NativeName / FileName" e.g. "Русский / Russian" */
+                                        char comboText[128];
+                                        if (strcmp(displayName, name) != 0) {
+                                                wsprintfA(comboText, "%s / %s", displayName, name);
+                                        } else {
+                                                wsprintfA(comboText, "%s", name);
+                                        }
+                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)comboText);
                                         /* Store the file name as item data for lookup on selection */
                                         char* nameCopy = _strdup(name);
                                         SendMessage(c->combo, CB_SETITEMDATA, (WPARAM)idx, nameCopy ? (LPARAM)nameCopy : 0);
@@ -2597,7 +2604,13 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                                 LangEnumerate([](const char* name, void* ud) {
                                         LangEnumCtx* c = (LangEnumCtx*)ud;
                                         const char* displayName = LangGetDisplayName(name);
-                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)displayName);
+                                        char comboText[128];
+                                        if (strcmp(displayName, name) != 0) {
+                                                wsprintfA(comboText, "%s / %s", displayName, name);
+                                        } else {
+                                                wsprintfA(comboText, "%s", name);
+                                        }
+                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)comboText);
                                         char* nameCopy = _strdup(name);
                                         SendMessage(c->combo, CB_SETITEMDATA, (WPARAM)idx, nameCopy ? (LPARAM)nameCopy : 0);
                                         if (_stricmp(name, c->current) == 0) {
