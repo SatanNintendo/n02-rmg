@@ -59,3 +59,19 @@ int LangEnumerate(LangEnumCallback callback, void* userdata);
 /* Reload the language system with a specific language file.
    Useful for changing language at runtime. Returns true on success. */
 bool LangSetLanguage(const char* langName);
+
+/* Custom Windows message broadcast when the language changes.
+   Dialogs should handle this message to re-apply their localized strings.
+   wParam = 0, lParam = 0. */
+#define WM_LANG_CHANGED (WM_USER + 0x137)
+
+/* Notify all windows in the current thread that the language has changed.
+   Sends WM_LANG_CHANGED to every top-level and child window on the thread.
+   Also re-initializes shared status strings (InitStatusStrings).
+   Call this after LangSetLanguage() succeeds. */
+void LangNotifyChanged();
+
+/* Forward declaration: defined in kaillera_ui.cpp.
+   Re-initializes CONNECTION_TYPES, USER_STATUS, GAME_STATUS,
+   column menu titles, and other shared strings. */
+void InitStatusStrings();

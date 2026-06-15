@@ -217,8 +217,8 @@ static const LangEntry g_defaultEntries[] = {
     {"STATUS_WAITING", "Waiting"},
     /* COLUMN HEADERS - Users */
     {"COL_NAME", "Name"},
-    {"COL_SERVER_NAME", "Name"},
     {"COL_PING", "Ping"},
+    {"COL_SERVER_NAME", "Name"},
     {"COL_UID", "UID"},
     {"COL_STATUS", "Status"},
     {"COL_CONNECTION", "Connection"},
@@ -895,4 +895,23 @@ bool LangSetLanguage(const char* langName) {
     }
 
     return false;
+}
+
+/* ---------------------------------------------------------------------------
+ * LangNotifyChanged - tell all windows the language has changed
+ * --------------------------------------------------------------------------- */
+static BOOL CALLBACK SendLangChangedEnum(HWND hwnd, LPARAM lParam) {
+    (void)lParam;
+    SendMessage(hwnd, WM_LANG_CHANGED, 0, 0);
+    /* Also enumerate child windows (ListView headers, etc.) */
+    EnumChildWindows(hwnd, SendLangChangedEnum, 0);
+    return TRUE;
+}
+
+void LangNotifyChanged() {
+    /* Re-initialize shared status strings */
+    InitStatusStrings();
+
+    /* Send WM_LANG_CHANGED to all windows on the current thread */
+    EnumThreadWindows(GetCurrentThreadId(), SendLangChangedEnum, 0);
 }
