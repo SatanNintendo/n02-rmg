@@ -166,8 +166,8 @@ static void UpdateModeRadioButtons(HWND hDlg){
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-void outp(char * line);
-static void AppendP2PFormattedLine(char* fmt, va_list args) {
+void outp(const char * line);
+static void AppendP2PFormattedLine(const char* fmt, va_list args) {
         char msg[2048];
         msg[0] = 0;
         vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
@@ -179,13 +179,13 @@ static void AppendP2PFormattedLine(char* fmt, va_list args) {
         _snprintf_s(line, sizeof(line), _TRUNCATE, "%s%s\r\n", ts, msg);
         outp(line);
 }
-void __cdecl outpf(char * arg_0, ...) {
+void __cdecl outpf(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendP2PFormattedLine(arg_0, args);
         va_end (args);
 }
-void __cdecl p2p_core_debug(char * arg_0, ...) {
+void __cdecl p2p_core_debug(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendP2PFormattedLine(arg_0, args);
@@ -628,7 +628,7 @@ static void p2p_update_idle_title() {
         }
 }
 
-static void AppendP2PFormattedLineColor(COLORREF color, char* fmt, va_list args) {
+static void AppendP2PFormattedLineColor(COLORREF color, const char* fmt, va_list args) {
         char msg[2048];
         msg[0] = 0;
         vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
@@ -641,7 +641,7 @@ static void AppendP2PFormattedLineColor(COLORREF color, char* fmt, va_list args)
         re_append(p2p_ui_con_richedit, line, color);
 }
 
-static void p2p_debug_color(COLORREF color, char* arg_0, ...) {
+static void p2p_debug_color(COLORREF color, const char* arg_0, ...) {
         va_list args;
         va_start(args, arg_0);
         AppendP2PFormattedLineColor(color, arg_0, args);
@@ -1188,7 +1188,7 @@ void p2p_peer_info_callback(char* p33rname, char* app) {
         peerapp[sizeof(peerapp) - 1] = 0;
 }
 
-void outp(char * line){
+void outp(const char * line){
         if (p2p_ui_con_richedit == NULL || line == NULL)
                 return;
         re_append(p2p_ui_con_richedit, line, 0);

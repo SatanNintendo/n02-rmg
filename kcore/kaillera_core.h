@@ -19,8 +19,8 @@ int kaillera_ping_server(char * host, int port, int limit = 1000);
 void kaillera_step();
 
 
-void __cdecl kaillera_core_debug(char * arg_0, ...);
-void __cdecl kaillera_error_callback(char * arg_0, ...);
+void __cdecl kaillera_core_debug(const char * arg_0, ...);
+void __cdecl kaillera_error_callback(const char * arg_0, ...);
 
 
 int kaillera_get_frames_count();

@@ -14,7 +14,7 @@ class nTab{
 public:
         HWND handle;
 
-        inline void AddTab(char * name, int index){
+        inline void AddTab(const char * name, int index){
                 TCITEM tie;
                 tie.mask = TCIF_TEXT;
                 tie.pszText = name;
@@ -51,7 +51,7 @@ public:
                 recz = 0;
         }
 
-        int AddRow (char * content){
+        int AddRow (const char * content){
                 LVITEM lvI;
                 lvI.mask        = LVIF_TEXT | LVIF_PARAM;
                 lvI.iItem       = recz++;
@@ -63,7 +63,7 @@ public:
         }
 
 
-        int AddRow(char*content, LPARAM rowno){
+        int AddRow(const char*content, LPARAM rowno){
                 LVITEM lvI;
                 lvI.mask        = LVIF_TEXT | LVIF_PARAM;
                 lvI.iItem       = (int)recz;
@@ -103,7 +103,7 @@ public:
                 ListView_DeleteItem(handle, rowno);
         }
 
-        void FillRow (char * content, int coli, int rowi){
+        void FillRow (const char * content, int coli, int rowi){
                 /*
                 LVITEMA lvI;
                 lvI.mask        = LVIF_TEXT;
@@ -124,7 +124,7 @@ public:
                 SendMessage(handle, LVM_GETITEM, 0, (LPARAM)(&lvI));
         }
 
-        void AddColumn(char * name, int colw){
+        void AddColumn(const char * name, int colw){
                 LVCOLUMNA lvc;
                 lvc.mask                = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
                 lvc.iSubItem    = cols++;
@@ -164,7 +164,7 @@ public:
 
 
 
-        inline void re_append(HWND hwnd, char * line, COLORREF color = 0){
+        inline void re_append(HWND hwnd, const char * line, COLORREF color = 0){
                 // Preserve the user's selection (p2pkaillera behavior). This prevents the output window
                 // from "stealing" selection when the user highlights/copies text.
                 CHARRANGE prev;

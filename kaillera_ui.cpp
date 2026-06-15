@@ -39,40 +39,7 @@ char * GAME_STATUS [] = { "", "", "" };
 static char s_lobby_away[128];
 static char s_lobby_chat[128];
 
-static void InitStatusStrings() {
-    CONNECTION_TYPES[1] = (char*)LNG(CONN_TYPE_LAN);
-    CONNECTION_TYPES[2] = (char*)LNG(CONN_TYPE_EXC);
-    CONNECTION_TYPES[3] = (char*)LNG(CONN_TYPE_GOOD);
-    CONNECTION_TYPES[4] = (char*)LNG(CONN_TYPE_AVG);
-    CONNECTION_TYPES[5] = (char*)LNG(CONN_TYPE_LOW);
-    CONNECTION_TYPES[6] = (char*)LNG(CONN_TYPE_BAD);
-    USER_STATUS[0] = (char*)LNG(STATUS_PLAYING);
-    USER_STATUS[1] = (char*)LNG(STATUS_IDLE);
-    USER_STATUS[2] = (char*)LNG(STATUS_PLAYING);
-    GAME_STATUS[0] = (char*)LNG(STATUS_WAITING);
-    GAME_STATUS[1] = (char*)LNG(STATUS_PLAYING);
-    GAME_STATUS[2] = (char*)LNG(STATUS_PLAYING);
-    strncpy_s(s_lobby_away, LNG(LOBBY_AWAY), _TRUNCATE);
-    strncpy_s(s_lobby_chat, LNG(LOBBY_CHAT), _TRUNCATE);
-
-    g_users_column_menu[0].title = LNG(COL_NAME);
-    g_users_column_menu[1].title = LNG(COL_PING);
-    g_users_column_menu[2].title = LNG(COL_UID);
-    g_users_column_menu[3].title = LNG(COL_STATUS);
-    g_users_column_menu[4].title = LNG(COL_CONNECTION);
-
-    g_lobby_column_menu[0].title = LNG(COL_NICK);
-    g_lobby_column_menu[1].title = LNG(COL_PING);
-    g_lobby_column_menu[2].title = LNG(COL_CONNECTION);
-    g_lobby_column_menu[3].title = LNG(COL_DELAY);
-
-    g_games_column_menu[0].title = LNG(COL_GAME);
-    g_games_column_menu[1].title = LNG(COL_GAME_ID);
-    g_games_column_menu[2].title = LNG(COL_EMULATOR);
-    g_games_column_menu[3].title = LNG(COL_USER);
-    g_games_column_menu[4].title = LNG(COL_STATUS);
-    g_games_column_menu[5].title = LNG(COL_USERS);
-}
+static void InitStatusStrings();
 
 //===========================================================================
 //===========================================================================
@@ -163,6 +130,41 @@ static bool g_kaillera_allow_zero_width_columns = false;
 static bool g_hidden_column_track_active = false;
 static HWND g_hidden_column_track_list = NULL;
 static int g_hidden_column_track_item = -1;
+
+void InitStatusStrings() {
+    CONNECTION_TYPES[1] = (char*)LNG(CONN_TYPE_LAN);
+    CONNECTION_TYPES[2] = (char*)LNG(CONN_TYPE_EXC);
+    CONNECTION_TYPES[3] = (char*)LNG(CONN_TYPE_GOOD);
+    CONNECTION_TYPES[4] = (char*)LNG(CONN_TYPE_AVG);
+    CONNECTION_TYPES[5] = (char*)LNG(CONN_TYPE_LOW);
+    CONNECTION_TYPES[6] = (char*)LNG(CONN_TYPE_BAD);
+    USER_STATUS[0] = (char*)LNG(STATUS_PLAYING);
+    USER_STATUS[1] = (char*)LNG(STATUS_IDLE);
+    USER_STATUS[2] = (char*)LNG(STATUS_PLAYING);
+    GAME_STATUS[0] = (char*)LNG(STATUS_WAITING);
+    GAME_STATUS[1] = (char*)LNG(STATUS_PLAYING);
+    GAME_STATUS[2] = (char*)LNG(STATUS_PLAYING);
+    strncpy_s(s_lobby_away, LNG(LOBBY_AWAY), _TRUNCATE);
+    strncpy_s(s_lobby_chat, LNG(LOBBY_CHAT), _TRUNCATE);
+
+    g_users_column_menu[0].title = (char*)LNG(COL_NAME);
+    g_users_column_menu[1].title = (char*)LNG(COL_PING);
+    g_users_column_menu[2].title = (char*)LNG(COL_UID);
+    g_users_column_menu[3].title = (char*)LNG(COL_STATUS);
+    g_users_column_menu[4].title = (char*)LNG(COL_CONNECTION);
+
+    g_lobby_column_menu[0].title = (char*)LNG(COL_NICK);
+    g_lobby_column_menu[1].title = (char*)LNG(COL_PING);
+    g_lobby_column_menu[2].title = (char*)LNG(COL_CONNECTION);
+    g_lobby_column_menu[3].title = (char*)LNG(COL_DELAY);
+
+    g_games_column_menu[0].title = (char*)LNG(COL_GAME);
+    g_games_column_menu[1].title = (char*)LNG(COL_GAME_ID);
+    g_games_column_menu[2].title = (char*)LNG(COL_EMULATOR);
+    g_games_column_menu[3].title = (char*)LNG(COL_USER);
+    g_games_column_menu[4].title = (char*)LNG(COL_STATUS);
+    g_games_column_menu[5].title = (char*)LNG(COL_USERS);
+}
 static int g_hidden_column_track_prev_item = -1;
 static int g_hidden_column_track_start_prev_width = 0;
 static int g_hidden_column_track_start_cursor_x = 0;
@@ -896,7 +898,7 @@ void kaillera_goutp(char * line){
 static const COLORREF KAILLERA_COLOR_GREEN = 0x00009900; // matches kaillera_ui_motd()
 static const COLORREF KAILLERA_COLOR_DARK_BLUE = RGB(0, 0, 102); // join/leave in lobby chat
 
-static void AppendFormattedLine(HWND hwnd, COLORREF color, char* fmt, va_list args) {
+static void AppendFormattedLine(HWND hwnd, COLORREF color, const char* fmt, va_list args) {
         char msg[2048];
         msg[0] = 0;
         vsnprintf_s(msg, sizeof(msg), _TRUNCATE, fmt, args);
@@ -910,60 +912,60 @@ static void AppendFormattedLine(HWND hwnd, COLORREF color, char* fmt, va_list ar
 }
 
 
-void __cdecl kaillera_gdebug(char * arg_0, ...) {
+void __cdecl kaillera_gdebug(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendFormattedLine(kaillera_sdlg_RE_GCHAT, 0x00000000, arg_0, args);
         va_end (args);
 }
 
-void __cdecl kaillera_gdebug_color(COLORREF color, char* arg_0, ...) {
+void __cdecl kaillera_gdebug_color(COLORREF color, const char* arg_0, ...) {
         va_list args;
         va_start(args, arg_0);
         AppendFormattedLine(kaillera_sdlg_RE_GCHAT, color, arg_0, args);
         va_end(args);
 }
-void __cdecl kaillera_ui_gdebug(char* arg_0, ...) {
+void __cdecl kaillera_ui_gdebug(const char* arg_0, ...) {
         va_list args;
         va_start(args, arg_0);
         AppendFormattedLine(kaillera_sdlg_RE_GCHAT, 0x00000000, arg_0, args);
         va_end(args);
 }
 
-void __cdecl kaillera_ui_gdebug_color(COLORREF color, char* arg_0, ...) {
+void __cdecl kaillera_ui_gdebug_color(COLORREF color, const char* arg_0, ...) {
         va_list args;
         va_start(args, arg_0);
         AppendFormattedLine(kaillera_sdlg_RE_GCHAT, color, arg_0, args);
         va_end(args);
 }
 
-void __cdecl kaillera_core_debug(char * arg_0, ...) {
+void __cdecl kaillera_core_debug(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendFormattedLine(kaillera_sdlg_partchat, 0x00FF0000, arg_0, args);
         va_end (args);
 }
-void __cdecl kaillera_ui_motd(char * arg_0, ...) {
+void __cdecl kaillera_ui_motd(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendFormattedLine(kaillera_sdlg_partchat, KAILLERA_COLOR_GREEN, arg_0, args);
         va_end (args);
 }
-void __cdecl kaillera_error_callback(char * arg_0, ...) {
+void __cdecl kaillera_error_callback(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendFormattedLine(kaillera_sdlg_partchat, 0x000000FF, arg_0, args);
         va_end (args);
 }
 
-void __cdecl kaillera_ui_debug(char * arg_0, ...) {
+void __cdecl kaillera_ui_debug(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendFormattedLine(kaillera_sdlg_partchat, 0x00000000, arg_0, args);
         va_end (args);
 }
 
-void __cdecl kaillera_outpf(char * arg_0, ...) {
+void __cdecl kaillera_outpf(const char * arg_0, ...) {
         va_list args;
         va_start (args, arg_0);
         AppendFormattedLine(kaillera_sdlg_partchat, 0x00000000, arg_0, args);

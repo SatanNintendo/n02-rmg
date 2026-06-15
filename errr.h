@@ -17,16 +17,16 @@ int n02ExceptionFilterFunction(_EXCEPTION_POINTERS *ExceptionInfo);
 //#ifdef TRACE
 
 
-void _n02_TRACE(char * file, int line);
+void _n02_TRACE(const char * file, int line);
 
-	#define n02_TRACE() _n02_TRACE(__FILE__, __LINE__)
-	
-	/*
-	#define KDBFC(X, ...) \
-		kprintf("DEBUG: %s:%i#%s (" #X ")", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__);
-	*/
-	
-	//#else
+        #define n02_TRACE() _n02_TRACE(__FILE__, __LINE__)
+        
+        /*
+        #define KDBFC(X, ...) \
+                kprintf("DEBUG: %s:%i#%s (" #X ")", __FILE__, __LINE__, __FUNCTION__, __VA_ARGS__);
+        */
+        
+        //#else
 
 //#define n02_TRACE()
 

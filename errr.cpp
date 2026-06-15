@@ -23,7 +23,7 @@
 
 //#include "common/nprintf.h"
 // our most sexing debug/logging function
-void __cdecl kprintf(char * arg_0, ...) {
+void __cdecl kprintf(const char * arg_0, ...) {
         //print on console
 #if 1
         char V88[2048];
@@ -50,7 +50,7 @@ void __cdecl kprintf(char * arg_0, ...) {
         }
 
 typedef struct {
-        char * file;
+        const char * file;
         int line;
 } n02_TRACE_st;
 
@@ -60,7 +60,7 @@ typedef struct {
 n02_TRACE_st n02_TRACE_stack[n02_TRACE_stack_len];
 unsigned int n02_TRACE_stack_pos = 0;
 
-void _n02_TRACE(char * file, int line){
+void _n02_TRACE(const char * file, int line){
         n02_TRACE_stack[n02_TRACE_stack_pos&n02_TRACE_stack_mask].file = file;
         n02_TRACE_stack[n02_TRACE_stack_pos&n02_TRACE_stack_mask].line = line;
         n02_TRACE_stack_pos++;
@@ -80,27 +80,27 @@ extern HINSTANCE hx;
 
 static char ExceptionCodeToStr_t[64];
 
-char * ExceptionCodeToStr(int code) {
-        if (code==EXCEPTION_ACCESS_VIOLATION) return (char*)LNG(EXCEPTION_ACCESS_VIOLATION);
-        if (code==EXCEPTION_ARRAY_BOUNDS_EXCEEDED) return (char*)LNG(EXCEPTION_ARRAY_BOUNDS_EXCEEDED);
-        if (code==EXCEPTION_BREAKPOINT) return (char*)LNG(EXCEPTION_BREAKPOINT);
-        if (code==EXCEPTION_DATATYPE_MISALIGNMENT) return (char*)LNG(EXCEPTION_DATATYPE_MISALIGNMENT);
-        if (code==EXCEPTION_FLT_DENORMAL_OPERAND) return (char*)LNG(EXCEPTION_FLT_DENORMAL_OPERAND);
-        if (code==EXCEPTION_FLT_DIVIDE_BY_ZERO) return (char*)LNG(EXCEPTION_FLT_DIVIDE_BY_ZERO);
-        if (code==EXCEPTION_FLT_INEXACT_RESULT) return (char*)LNG(EXCEPTION_FLT_INEXACT_RESULT);
-        if (code==EXCEPTION_FLT_INVALID_OPERATION) return (char*)LNG(EXCEPTION_FLT_INVALID_OPERATION);
-        if (code==EXCEPTION_FLT_OVERFLOW) return (char*)LNG(EXCEPTION_FLT_OVERFLOW);
-        if (code==EXCEPTION_FLT_STACK_CHECK) return (char*)LNG(EXCEPTION_FLT_STACK_CHECK);
-        if (code==EXCEPTION_FLT_UNDERFLOW) return (char*)LNG(EXCEPTION_FLT_UNDERFLOW);
-        if (code==EXCEPTION_ILLEGAL_INSTRUCTION) return (char*)LNG(EXCEPTION_ILLEGAL_INSTRUCTION);
-        if (code==EXCEPTION_IN_PAGE_ERROR) return (char*)LNG(EXCEPTION_IN_PAGE_ERROR);
-        if (code==EXCEPTION_INT_DIVIDE_BY_ZERO) return (char*)LNG(EXCEPTION_INT_DIVIDE_BY_ZERO);
-        if (code==EXCEPTION_INT_OVERFLOW) return (char*)LNG(EXCEPTION_INT_OVERFLOW);
-        if (code==EXCEPTION_INVALID_DISPOSITION) return (char*)LNG(EXCEPTION_INVALID_DISPOSITION);
-        if (code==EXCEPTION_NONCONTINUABLE_EXCEPTION) return (char*)LNG(EXCEPTION_NONCONTINUABLE_EXCEPTION);
-        if (code==EXCEPTION_PRIV_INSTRUCTION) return (char*)LNG(EXCEPTION_PRIV_INSTRUCTION);
-        if (code==EXCEPTION_SINGLE_STEP) return (char*)LNG(EXCEPTION_SINGLE_STEP);
-        if (code==EXCEPTION_STACK_OVERFLOW) return (char*)LNG(EXCEPTION_STACK_OVERFLOW);
+const char * ExceptionCodeToStr(int code) {
+        if (code==EXCEPTION_ACCESS_VIOLATION) return LNG(EXCEPTION_ACCESS_VIOLATION);
+        if (code==EXCEPTION_ARRAY_BOUNDS_EXCEEDED) return LNG(EXCEPTION_ARRAY_BOUNDS_EXCEEDED);
+        if (code==EXCEPTION_BREAKPOINT) return LNG(EXCEPTION_BREAKPOINT);
+        if (code==EXCEPTION_DATATYPE_MISALIGNMENT) return LNG(EXCEPTION_DATATYPE_MISALIGNMENT);
+        if (code==EXCEPTION_FLT_DENORMAL_OPERAND) return LNG(EXCEPTION_FLT_DENORMAL_OPERAND);
+        if (code==EXCEPTION_FLT_DIVIDE_BY_ZERO) return LNG(EXCEPTION_FLT_DIVIDE_BY_ZERO);
+        if (code==EXCEPTION_FLT_INEXACT_RESULT) return LNG(EXCEPTION_FLT_INEXACT_RESULT);
+        if (code==EXCEPTION_FLT_INVALID_OPERATION) return LNG(EXCEPTION_FLT_INVALID_OPERATION);
+        if (code==EXCEPTION_FLT_OVERFLOW) return LNG(EXCEPTION_FLT_OVERFLOW);
+        if (code==EXCEPTION_FLT_STACK_CHECK) return LNG(EXCEPTION_FLT_STACK_CHECK);
+        if (code==EXCEPTION_FLT_UNDERFLOW) return LNG(EXCEPTION_FLT_UNDERFLOW);
+        if (code==EXCEPTION_ILLEGAL_INSTRUCTION) return LNG(EXCEPTION_ILLEGAL_INSTRUCTION);
+        if (code==EXCEPTION_IN_PAGE_ERROR) return LNG(EXCEPTION_IN_PAGE_ERROR);
+        if (code==EXCEPTION_INT_DIVIDE_BY_ZERO) return LNG(EXCEPTION_INT_DIVIDE_BY_ZERO);
+        if (code==EXCEPTION_INT_OVERFLOW) return LNG(EXCEPTION_INT_OVERFLOW);
+        if (code==EXCEPTION_INVALID_DISPOSITION) return LNG(EXCEPTION_INVALID_DISPOSITION);
+        if (code==EXCEPTION_NONCONTINUABLE_EXCEPTION) return LNG(EXCEPTION_NONCONTINUABLE_EXCEPTION);
+        if (code==EXCEPTION_PRIV_INSTRUCTION) return LNG(EXCEPTION_PRIV_INSTRUCTION);
+        if (code==EXCEPTION_SINGLE_STEP) return LNG(EXCEPTION_SINGLE_STEP);
+        if (code==EXCEPTION_STACK_OVERFLOW) return LNG(EXCEPTION_STACK_OVERFLOW);
         wsprintf(ExceptionCodeToStr_t, "%i", code);
         return ExceptionCodeToStr_t;
 }
