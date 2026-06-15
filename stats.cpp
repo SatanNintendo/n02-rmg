@@ -296,6 +296,9 @@ LRESULT CALLBACK n02StatsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         break;
                 };
                 break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, N02_STATSDLG);
+                break;
         };
         return 0;
 }

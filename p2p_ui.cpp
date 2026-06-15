@@ -1510,6 +1510,27 @@ LRESULT CALLBACK ConnectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                         break;
                 };
                 break;
+        case WM_LANG_CHANGED:
+                {
+                        ApplyDialogLanguage(hDlg, CONNECTION_DIALOG);
+                        /* Update frame delay combo */
+                        HWND hFdlyCombo = GetDlgItem(hDlg, IDC_P2P_FDLY);
+                        int saved_fdly = (int)SendMessage(hFdlyCombo, CB_GETCURSEL, 0, 0);
+                        if (saved_fdly == CB_ERR) saved_fdly = 0;
+                        SendMessage(hFdlyCombo, CB_RESETCONTENT, 0, 0);
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_AUTO));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_1));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_2));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_3));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_4));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_5));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_6));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_7));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_8));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(P2P_FD_9));
+                        SendMessage(hFdlyCombo, CB_SETCURSEL, saved_fdly, 0);
+                }
+                break;
         };      
         return 0;
 }
@@ -1684,6 +1705,8 @@ LRESULT CALLBACK P2PStoredUsersModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
                         EndDialog(hDlg, 1);
                 } else if (LOWORD(wParam)==IDCANCEL)
                         EndDialog(hDlg, 0);
+        } else if (uMsg==WM_LANG_CHANGED){
+                ApplyDialogLanguage(hDlg, P2P_ITEM_EDIT);
         }
         return 0;
 }
@@ -1902,6 +1925,19 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         if (nParam->code == NM_CLICK) {
                                 P2PStoredUsersListSelect(hDlg);
                         }
+                }
+                break;
+        case WM_LANG_CHANGED:
+                {
+                        ApplyDialogLanguage(hDlg, MAIN_DIALOG);
+                        { char wt[64]; wsprintf(wt, LNG(N02_WINDOW_TITLE), N02_VER); SetWindowText(hDlg, wt); }
+                        p2p_ui_storedusers.SetColumnHeader(0, LNG(COL_NAME));
+                        p2p_ui_storedusers.SetColumnHeader(1, LNG(COL_IP));
+                        /* Update tab labels */
+                        nTab tabb;
+                        tabb.handle = p2p_ui_modeseltab;
+                        tabb.SetTabText(0, LNG(TAB_HOST));
+                        tabb.SetTabText(1, LNG(TAB_CONNECT));
                 }
                 break;
                 };

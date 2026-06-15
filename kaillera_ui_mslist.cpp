@@ -728,6 +728,18 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                                 EndDialog(hDlg, 0);
                         }
                         break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                SetWindowText(hDlg, LNG(MSL_MASTER_WAITING));
+                kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                kaillera_mlv.SetColumnHeader(1, LNG(COL_EMULATOR));
+                kaillera_mlv.SetColumnHeader(2, LNG(COL_USER));
+                kaillera_mlv.SetColumnHeader(3, LNG(COL_PING));
+                kaillera_mlv.SetColumnHeader(4, LNG(COL_WAITING));
+                kaillera_mlv.SetColumnHeader(5, LNG(COL_SERVER));
+                kaillera_mlv.SetColumnHeader(6, LNG(COL_LOCATION));
+                kaillera_mlv.SetColumnHeader(7, LNG(COL_IP));
+                break;
         };
         return 0;
 }
@@ -814,6 +826,17 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 SendMessage(hDlg, WM_CLOSE,0,0);
                         }
                         break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
+                kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                kaillera_mlv.SetColumnHeader(1, LNG(COL_LOCATION));
+                kaillera_mlv.SetColumnHeader(2, LNG(COL_PING));
+                kaillera_mlv.SetColumnHeader(3, LNG(COL_USERS));
+                kaillera_mlv.SetColumnHeader(4, LNG(COL_GAME));
+                kaillera_mlv.SetColumnHeader(5, LNG(COL_VER));
+                kaillera_mlv.SetColumnHeader(6, LNG(COL_IP));
+                break;
         };
         return 0;
 }
@@ -1180,6 +1203,16 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                                 EndDialog(hDlg, 0);
                         }
                         break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                SetWindowText(hDlg, LNG(MSL_WAITING_GAMES));
+                kaillera_mlv.SetColumnHeader(0, LNG(COL_GAME));
+                kaillera_mlv.SetColumnHeader(1, LNG(COL_EMULATOR));
+                kaillera_mlv.SetColumnHeader(2, LNG(COL_USER));
+                kaillera_mlv.SetColumnHeader(3, LNG(COL_PING));
+                kaillera_mlv.SetColumnHeader(4, LNG(COL_HOST));
+                kaillera_mlv.SetColumnHeader(5, LNG(COL_CODE));
+                break;
         };
         return 0;
 }

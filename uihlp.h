@@ -32,6 +32,12 @@ public:
         inline int SelectedTab(){
                 return TabCtrl_GetCurSel(handle);
         }
+        inline void SetTabText(int index, const char * name){
+                TCITEM tie;
+                tie.mask = TCIF_TEXT;
+                tie.pszText = const_cast<LPSTR>(name);
+                TabCtrl_SetItem(handle, index, &tie);
+        }
 };
 
 
@@ -133,6 +139,14 @@ public:
                 lvc.fmt                 = LVCFMT_LEFT;
 
                 ListView_InsertColumn(handle, (cols-1), &lvc);
+        }
+
+        void SetColumnHeader(int colIndex, const char * name){
+                LVCOLUMNA lvc;
+                lvc.mask        = LVCF_TEXT;
+                lvc.iSubItem    = colIndex;
+                lvc.pszText     = const_cast<LPSTR>(name);
+                ListView_SetColumn(handle, colIndex, &lvc);
         }
 
         void DeleteAllRows(){

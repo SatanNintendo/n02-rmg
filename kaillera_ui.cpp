@@ -1609,6 +1609,9 @@ static INT_PTR CALLBACK OptionsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                                         return (INT_PTR)TRUE;
                         }
                         break;
+                case WM_LANG_CHANGED:
+                        ApplyDialogLanguage(hDlg, KAILLERA_OPTIONS);
+                        break;
         }
         return (INT_PTR)FALSE;
 }
@@ -1998,6 +2001,24 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                                         break;
                         };
                         break;
+        case WM_LANG_CHANGED:
+                {
+                        ApplyDialogLanguage(hDlg, KAILLERA_SDLG);
+                        /* Update ListView column headers - users */
+                        kaillera_sdlg_userslv.SetColumnHeader(0, LNG(COL_NAME));
+                        kaillera_sdlg_userslv.SetColumnHeader(1, LNG(COL_PING));
+                        kaillera_sdlg_userslv.SetColumnHeader(2, LNG(COL_UID));
+                        kaillera_sdlg_userslv.SetColumnHeader(3, LNG(COL_STATUS));
+                        kaillera_sdlg_userslv.SetColumnHeader(4, LNG(COL_CONNECTION));
+                        /* Update ListView column headers - games */
+                        kaillera_sdlg_gameslv.SetColumnHeader(0, LNG(COL_GAME));
+                        kaillera_sdlg_gameslv.SetColumnHeader(1, LNG(COL_GAME_ID));
+                        kaillera_sdlg_gameslv.SetColumnHeader(2, LNG(COL_EMULATOR));
+                        kaillera_sdlg_gameslv.SetColumnHeader(3, LNG(COL_USER));
+                        kaillera_sdlg_gameslv.SetColumnHeader(4, LNG(COL_STATUS));
+                        kaillera_sdlg_gameslv.SetColumnHeader(5, LNG(COL_USERS));
+                }
+                break;
                         case WM_NOTIFY:
                         if (re_handle_link_click(lParam))
                                 break;
@@ -2286,6 +2307,8 @@ LRESULT CALLBACK KLSListModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                         EndDialog(hDlg, 1);
                 } else if (LOWORD(wParam)==IDCANCEL)
                         EndDialog(hDlg, 0);
+        } else if (uMsg==WM_LANG_CHANGED){
+                ApplyDialogLanguage(hDlg, P2P_ITEM_EDIT);
         }
         return 0;
 }
@@ -2533,13 +2556,16 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                                         char langName[64];
                                         SendMessage(hCombo, CB_GETLBTEXT, (WPARAM)sel, (LPARAM)langName);
                                         if (LangSetLanguage(langName)) {
-                                                /* Re-apply dialog strings immediately */
-                                                ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
+                                                /* Notify all windows to update their language */
+                                                LangNotifyChanged();
                                         }
                                 }
                         }
                         break;
                 };
+                break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
                 break;
         };
         return 0;
@@ -2573,6 +2599,9 @@ LRESULT CALLBACK CustomIPDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                         ConnectToServer(host, port, kaillera_ssdlg,host);
                                 EndDialog(hDlg, 0);
                         }
+                        break;
+                case WM_LANG_CHANGED:
+                        ApplyDialogLanguage(hDlg, KAILLERA_CUSTOMIP);
                         break;
         };
         return 0;
@@ -2742,6 +2771,32 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                                         SendMessage(hDlg, WM_CLOSE, 0, 0);
                                 break;
                 };
+                break;
+        case WM_LANG_CHANGED:
+                {
+                        ApplyDialogLanguage(hDlg, KAILLERA_SSDLG);
+                        { char wt[64]; wsprintf(wt, LNG(N02_WINDOW_TITLE), N02_VER); SetWindowText(hDlg, wt); }
+                        /* Update ListView column headers */
+                        KLSListLv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                        KLSListLv.SetColumnHeader(1, LNG(COL_IP));
+                        KLSListLv.SetColumnHeader(2, LNG(COL_PING));
+                        /* Update frame delay combo - clear and re-add items */
+                        HWND hFdlyCombo = GetDlgItem(hDlg, IDC_QUITMSG);
+                        int saved_fdly = (int)SendMessage(hFdlyCombo, CB_GETCURSEL, 0, 0);
+                        if (saved_fdly == CB_ERR) saved_fdly = 0;
+                        SendMessage(hFdlyCombo, CB_RESETCONTENT, 0, 0);
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_AUTO));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_1));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_2));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_3));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_4));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_5));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_6));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_7));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_8));
+                        SendMessage(hFdlyCombo, CB_ADDSTRING, 0, (LPARAM)LNG(FD_9));
+                        SendMessage(hFdlyCombo, CB_SETCURSEL, saved_fdly, 0);
+                }
                 break;
                 case WM_NOTIFY:
 

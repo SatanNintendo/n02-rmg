@@ -608,6 +608,23 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         ListView_SortItemsEx(RecordsListDlg_list.handle, RecordsList_CompareItems, 0);
                 }
                 break;
+        case WM_LANG_CHANGED:
+                {
+                        ApplyDialogLanguage(hDlg, RECORDER_PLAYBACK);
+                        colNames[0] = LNG(COL_DATE);
+                        colNames[1] = LNG(COL_PLAYERS);
+                        colNames[2] = LNG(COL_GAME);
+                        colNames[3] = LNG(COL_DURATION);
+                        colNames[4] = LNG(COL_SIZE);
+                        colNames[5] = LNG(COL_FILENAME);
+                        RecordsListDlg_list.SetColumnHeader(0, colNames[0]);
+                        RecordsListDlg_list.SetColumnHeader(1, colNames[1]);
+                        RecordsListDlg_list.SetColumnHeader(2, colNames[2]);
+                        RecordsListDlg_list.SetColumnHeader(3, colNames[3]);
+                        RecordsListDlg_list.SetColumnHeader(4, colNames[4]);
+                        RecordsListDlg_list.SetColumnHeader(5, colNames[5]);
+                }
+                break;
         };
         return 0;
 }

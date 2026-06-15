@@ -150,6 +150,9 @@ LRESULT CALLBACK ErrorReporterDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LP
                                 ExitProcess(1);
                         }
                         break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, N02_ERRORDLG);
+                break;
         };
         return 0;
 }
