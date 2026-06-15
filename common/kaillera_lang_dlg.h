@@ -13,7 +13,7 @@
 
 #include <windows.h>
 #include "kaillera_lang.h"
-#include "resource.h"
+#include "../resource.h"
 
 /* Apply localized strings to a dialog based on its resource ID.
    This sets window text, button labels, static text, group boxes, etc.
