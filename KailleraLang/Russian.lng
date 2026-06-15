@@ -203,6 +203,7 @@ STATUS_WAITING=Ожидает
 ; COLUMN HEADERS - Users List
 ; ============================================================================
 COL_NAME=Имя
+COL_SERVER_NAME=Название
 COL_PING=Пинг
 COL_UID=UID
 COL_STATUS=Статус
