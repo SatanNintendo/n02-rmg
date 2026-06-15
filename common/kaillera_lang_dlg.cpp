@@ -7,6 +7,7 @@
 
 #include "kaillera_lang_dlg.h"
 #include "../resource.h"
+#include <commctrl.h>
 
 /* Helper: set dialog item text if the control exists. Returns true if found. */
 static bool SetDlgText(HWND hDlg, int controlId, const char* text) {
@@ -186,19 +187,15 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         {
             HWND hLv = GetDlgItem(hDlg, LV_SLIST);
             if (hLv != NULL) {
-                /* Get column count via the header control:
-                   LVM_GETHEADER = 0x101F, HDM_GETITEMCOUNT = 0x1200 */
-                HWND hHdr = (HWND)SendMessage(hLv, 0x101F, 0, 0);
-                int colCount = (hHdr != NULL) ? (int)SendMessage(hHdr, 0x1200, 0, 0) : 0;
+                HWND hHdr = ListView_GetHeader(hLv);
+                int colCount = (hHdr != NULL) ? Header_GetItemCount(hHdr) : 0;
                 if (colCount > 0) {
-                    /* Helper lambda to set a column header.
-                       LVM_SETCOLUMNA = 0x105F (LVM_FIRST + 95) */
                     auto setColText = [&](int col, const char* text) {
                         LVCOLUMNA lvc;
                         lvc.mask = LVCF_TEXT;
                         lvc.iSubItem = col;
                         lvc.pszText = const_cast<LPSTR>(text);
-                        SendMessage(hLv, 0x105F, (WPARAM)col, (LPARAM)&lvc);
+                        ListView_SetColumn(hLv, col, &lvc);
                     };
 
                     if (colCount == 7) {
