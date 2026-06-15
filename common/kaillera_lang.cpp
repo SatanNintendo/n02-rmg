@@ -33,6 +33,7 @@ static struct {
     char*       stringPool;   /* Single allocation holding all strings */
     size_t      stringPoolSz; /* Size of stringPool                    */
     char        langName[64]; /* Display name of loaded language       */
+    char        langFile[64]; /* Filename-based identifier (e.g. Russian) */
     bool        initialized;  /* Whether LangInit() succeeded          */
 } g_lang = {0};
 
@@ -529,13 +530,14 @@ static void LangCleanup() {
     g_lang.capacity = 0;
     g_lang.stringPoolSz = 0;
     g_lang.langName[0] = 0;
+    g_lang.langFile[0] = 0;
     g_lang.initialized = false;
 }
 
 /* ---------------------------------------------------------------------------
  * Internal: load a .lng file and populate the entries array
  * --------------------------------------------------------------------------- */
-static bool LangLoadFile(const char* filePath) {
+static bool LangLoadFile(const char* filePath, const char* langIdent) {
     FILE* f = NULL;
     if (fopen_s(&f, filePath, "rb") != 0 || f == NULL) {
         return false;
@@ -561,6 +563,45 @@ static bool LangLoadFile(const char* filePath) {
     size_t bytesRead = fread(buf, 1, (size_t)fileSize, f);
     fclose(f);
     buf[bytesRead] = 0;
+
+    /* Skip UTF-8 BOM if present (0xEF 0xBB 0xBF) */
+    if (bytesRead >= 3 && (unsigned char)buf[0] == 0xEF &&
+        (unsigned char)buf[1] == 0xBB && (unsigned char)buf[2] == 0xBF) {
+        bytesRead -= 3;
+        memmove(buf, buf + 3, bytesRead + 1); /* shift data to start of buffer */
+    }
+
+    /* Convert UTF-8 to the system ANSI codepage.
+     * The .lng files are saved in UTF-8, but Win32 "A" APIs expect strings
+     * in the system ANSI codepage (e.g. Windows-1251 for Russian).
+     * Without this conversion, non-ASCII characters appear garbled. */
+    {
+        int wlen = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+                                        buf, (int)bytesRead, NULL, 0);
+        if (wlen > 0) {
+            wchar_t* wbuf = (wchar_t*)malloc((wlen + 1) * sizeof(wchar_t));
+            if (wbuf) {
+                MultiByteToWideChar(CP_UTF8, 0, buf, (int)bytesRead, wbuf, wlen);
+                wbuf[wlen] = 0;
+
+                int alen = WideCharToMultiByte(CP_ACP, 0, wbuf, wlen,
+                                                NULL, 0, NULL, NULL);
+                if (alen > 0) {
+                    char* abuf = (char*)malloc(alen + 1);
+                    if (abuf) {
+                        WideCharToMultiByte(CP_ACP, 0, wbuf, wlen,
+                                            abuf, alen, NULL, NULL);
+                        abuf[alen] = 0;
+                        free(buf);
+                        buf = abuf;
+                        bytesRead = (size_t)alen;
+                    }
+                }
+                free(wbuf);
+            }
+        }
+        /* If conversion fails (e.g. file is already ANSI), keep original buf */
+    }
 
     /* Count lines to estimate capacity */
     int lineCount = 0;
@@ -668,6 +709,11 @@ static bool LangLoadFile(const char* filePath) {
     g_lang.stringPoolSz = poolSize;
     g_lang.initialized = true;
 
+    /* Store the language identifier (filename without extension) */
+    if (langIdent) {
+        strncpy_s(g_lang.langFile, langIdent, _TRUNCATE);
+    }
+
     /* Free the temporary parse buffer */
     free(buf);
 
@@ -726,11 +772,11 @@ void LangInit() {
     strcat_s(langPath, sizeof(langPath), ".lng");
 
     /* Try to load the requested language */
-    if (!LangLoadFile(langPath)) {
+    if (!LangLoadFile(langPath, langFile)) {
         /* Fall back to English */
         langPath[basePathLen] = 0;
         strcat_s(langPath, sizeof(langPath), "English.lng");
-        if (!LangLoadFile(langPath)) {
+        if (!LangLoadFile(langPath, "English")) {
             /* Last resort: continue with empty strings; LNG() will return keys */
         }
     }
@@ -775,6 +821,13 @@ const char* LangGet(const char* key) {
 const char* LangGetName() {
     if (g_lang.langName[0] != 0) {
         return g_lang.langName;
+    }
+    return "English";
+}
+
+const char* LangGetFile() {
+    if (g_lang.langFile[0] != 0) {
+        return g_lang.langFile;
     }
     return "English";
 }
@@ -832,7 +885,7 @@ bool LangSetLanguage(const char* langName) {
     strcat_s(langPath, sizeof(langPath), langName);
     strcat_s(langPath, sizeof(langPath), ".lng");
 
-    if (LangLoadFile(langPath)) {
+    if (LangLoadFile(langPath, langName)) {
         /* Save the preference */
         nSettings::Initialize("okai");
         nSettings::set_str("Lang", (char*)langName);

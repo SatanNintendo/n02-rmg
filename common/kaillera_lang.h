@@ -40,8 +40,12 @@ const char* LangGet(const char* key);
    Usage: LNG(BTN_OK)  expands to  LangGet("BTN_OK") */
 #define LNG(key) LangGet(#key)
 
-/* Get the display name of the currently loaded language (e.g. "English", "Russian"). */
+/* Get the display name of the currently loaded language (e.g. "English", "Русский"). */
 const char* LangGetName();
+
+/* Get the file-based identifier of the currently loaded language (e.g. "English", "Russian").
+   This matches the filenames in KailleraLang/ and is suitable for combo box selection. */
+const char* LangGetFile();
 
 /* Get the number of strings loaded from the .lng file. */
 int LangGetCount();
