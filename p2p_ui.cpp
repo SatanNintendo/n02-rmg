@@ -1857,26 +1857,26 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         }
                         break;
                 case WM_CLOSE:
+                        {
                                 GetWindowText(GetDlgItem(hDlg, IDC_USRNAME), USERNAME, 31);
                                 nSettings::set_str("IDC_USRNAME", USERNAME);
                                 nSettings::set_int("IDC_PORT", GetDlgItemInt(hDlg, IDC_PORT, 0, FALSE));
-                        GetWindowText(GetDlgItem(hDlg, IDC_GAME), GAME, 127);
-                nSettings::set_str("IDC_GAME", GAME);
-                GetWindowText(GetDlgItem(hDlg, IDC_IP), IP, 127);
-                nSettings::set_str("IDC_IP", IP);
+                                GetWindowText(GetDlgItem(hDlg, IDC_GAME), GAME, 127);
+                                nSettings::set_str("IDC_GAME", GAME);
+                                GetWindowText(GetDlgItem(hDlg, IDC_IP), IP, 127);
+                                nSettings::set_str("IDC_IP", IP);
 
-                nTab tabb;
-                tabb.handle = p2p_ui_modeseltab;
-                nSettings::set_int("IDC_TAB", tabb.SelectedTab());
+                                nTab tabb;
+                                tabb.handle = p2p_ui_modeseltab;
+                                nSettings::set_int("IDC_TAB", tabb.SelectedTab());
 
-                P2PSaveStoredUsersList();
+                                P2PSaveStoredUsersList();
 
+                                EndDialog(hDlg, 0);
 
-                EndDialog(hDlg, 0);
-
-
-                nSettings::Terminate();
-                break;
+                                nSettings::Terminate();
+                        }
+                        break;
                 case WM_COMMAND:
                         switch (LOWORD(wParam)) {
                         case IDC_CONNECT:
@@ -1915,7 +1915,9 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         };
                         break;
         case WM_NOTIFY:
-                NMHDR * nParam = (NMHDR*)lParam;
+                {
+                NMHDR* nParam;
+                nParam = (NMHDR*)lParam;
                 if (nParam->hwndFrom == p2p_ui_modeseltab && nParam->code == TCN_SELCHANGE){
                         nTab tabb;
                         tabb.handle = p2p_ui_modeseltab;
@@ -1925,6 +1927,7 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         if (nParam->code == NM_CLICK) {
                                 P2PStoredUsersListSelect(hDlg);
                         }
+                }
                 }
                 break;
         case WM_LANG_CHANGED:

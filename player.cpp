@@ -591,6 +591,7 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 };
                 break;
         case WM_NOTIFY:
+                {
                 if(((LPNMHDR)lParam)->code==NM_DBLCLK && ((LPNMHDR)lParam)->hwndFrom==RecordsListDlg_list.handle){
                         RecordsList_PlaySelected();
                 }
@@ -606,6 +607,7 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 sort_ascending = true;
                         }
                         ListView_SortItemsEx(RecordsListDlg_list.handle, RecordsList_CompareItems, 0);
+                }
                 }
                 break;
         case WM_LANG_CHANGED:
