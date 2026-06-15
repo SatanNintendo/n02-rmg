@@ -13,7 +13,7 @@ int p2p_getSelectedDelay();
 void p2p_game_callback(char * game, int playerno, int maxplayers);
 void p2p_end_game_callback();
 void p2p_client_dropped_callback(char * nick, int playerno);
-void __cdecl p2p_core_debug(char * arg_0, ...);
+void __cdecl p2p_core_debug(const char * arg_0, ...);
 
 bool p2p_core_cleanup();
 bool p2p_core_initialize(bool host, int port, char * appname, char * gamename, char * username);
@@ -23,7 +23,7 @@ void p2p_retransmit();
 void p2p_drop_game();
 void p2p_set_ready(bool bx);
 void p2p_ping();
-void p2p_send_chat(char * xxx);
+void p2p_send_chat(const char * xxx);
 bool p2p_disconnect();
 void p2p_step();
 bool p2p_is_connected();
