@@ -17,7 +17,7 @@ public:
         inline void AddTab(const char * name, int index){
                 TCITEM tie;
                 tie.mask = TCIF_TEXT;
-                tie.pszText = name;
+                tie.pszText = const_cast<LPSTR>(name);
                 tie.lParam = index;
                 TabCtrl_InsertItem(handle, index, &tie);
         }
@@ -56,7 +56,7 @@ public:
                 lvI.mask        = LVIF_TEXT | LVIF_PARAM;
                 lvI.iItem       = recz++;
                 lvI.iSubItem    = 0;
-                lvI.pszText             = content;
+                lvI.pszText             = const_cast<LPSTR>(content);
                 lvI.lParam              = lvI.iItem;
 
                 return ListView_InsertItem(handle, &lvI);
@@ -68,7 +68,7 @@ public:
                 lvI.mask        = LVIF_TEXT | LVIF_PARAM;
                 lvI.iItem       = (int)recz;
                 lvI.iSubItem    = 0;
-                lvI.pszText             = content;
+                lvI.pszText             = const_cast<LPSTR>(content);
                 lvI.lParam              = rowno;
 
                 recz++;
@@ -111,7 +111,7 @@ public:
                 lvI.iSubItem    = coli;
                 lvI.pszText             = content;
                 SendMessage(handle, LVM_SETITEM, 0, (LPARAM)(&lvI));*/
-                ListView_SetItemText(handle, rowi, coli, content);
+                ListView_SetItemText(handle, rowi, coli, const_cast<LPSTR>(content));
         }
 
         void CheckRow (char * content, int llen, int coli, int rowi){
@@ -128,7 +128,7 @@ public:
                 LVCOLUMNA lvc;
                 lvc.mask                = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
                 lvc.iSubItem    = cols++;
-                lvc.pszText             = name;
+                lvc.pszText             = const_cast<LPSTR>(name);
                 lvc.cx                  = colw;
                 lvc.fmt                 = LVCFMT_LEFT;
 

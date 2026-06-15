@@ -680,7 +680,7 @@ bool player_SSDSTEP(){
         n02_TRACE();
         return false;
 }
-void player_ChatSend(char*){
+void player_ChatSend(const char*){
         
 }
 bool player_RecordingEnabled(){

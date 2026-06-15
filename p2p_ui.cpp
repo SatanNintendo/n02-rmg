@@ -23,7 +23,7 @@ extern HINSTANCE hx;
 static const char* kNoSpaceEditOldProcProp = "n02_NoSpaceEditOldProc";
 
 static const COLORREF P2P_COLOR_GREEN = 0x00009900; // matches kaillera_ui_motd()
-static void p2p_debug_color(COLORREF color, char* arg_0, ...);
+static void p2p_debug_color(COLORREF color, const char* arg_0, ...);
 
 static int g_p2p_last_ping_ms = -1;
 

@@ -82,7 +82,7 @@ typedef struct {
         void (*GUI)();
         bool (*SSDSTEP)();
         int  (*MPV)(void*,int);
-        void (*ChatSend)(char*);
+        void (*ChatSend)(const char*);
         void (*EndGame)();
         bool (*RecordingEnabled)();
 }n02_MODULE;
