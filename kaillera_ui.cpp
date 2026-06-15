@@ -2483,6 +2483,31 @@ void KLSListSave(){
 
 LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
+        case WM_INITDIALOG:
+                ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
+                {
+                        /* Populate language combo */
+                        HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
+                        if (hCombo) {
+                                const char* currentLang = LangGetName();
+                                struct LangEnumCtx {
+                                        HWND combo;
+                                        const char* current;
+                                        int selIdx;
+                                } ctx = { hCombo, currentLang, 0 };
+
+                                LangEnumerate([](const char* name, void* ud) {
+                                        LangEnumCtx* c = (LangEnumCtx*)ud;
+                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)name);
+                                        if (_stricmp(name, c->current) == 0) {
+                                                c->selIdx = idx;
+                                        }
+                                }, &ctx);
+
+                                SendMessage(hCombo, CB_SETCURSEL, (WPARAM)ctx.selIdx, 0);
+                        }
+                }
+                break;
         case WM_CLOSE:
                 EndDialog(hDlg, 0);
                 break;
@@ -2499,6 +2524,20 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         break;
                 case BTN_USEAGE:
                         ShellExecute(NULL, NULL, "http://p2p.kaillera.ru/", NULL, NULL, SW_SHOWNORMAL);
+                        break;
+                case IDC_LANG_COMBO:
+                        if (HIWORD(wParam) == CBN_SELCHANGE) {
+                                HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
+                                int sel = (int)SendMessage(hCombo, CB_GETCURSEL, 0, 0);
+                                if (sel != CB_ERR) {
+                                        char langName[64];
+                                        SendMessage(hCombo, CB_GETLBTEXT, (WPARAM)sel, (LPARAM)langName);
+                                        if (LangSetLanguage(langName)) {
+                                                /* Re-apply dialog strings immediately */
+                                                ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
+                                        }
+                                }
+                        }
                         break;
                 };
                 break;

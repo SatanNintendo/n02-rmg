@@ -118,6 +118,7 @@
 #define IDC_P2P_ADV_COPYIP              1101
 #define BTN_COPYLOG                     1102
 #define BTN_OPENFOLDER                  1103
+#define IDC_LANG_COMBO                  1104
 
 // Next default values for new objects
 //

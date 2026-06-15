@@ -153,17 +153,19 @@ BEGIN
     EDITTEXT        IDC_IP,34,24,98,12,ES_AUTOHSCROLL
 END
 
-KAILLERA_ABOUT DIALOGEX 0, 0, 186, 74
+KAILLERA_ABOUT DIALOGEX 0, 0, 186, 88
 STYLE DS_SETFONT | DS_MODALFRAME | DS_NOIDLEMSG | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About"
 FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
     PUSHBUTTON      "Close",BTN_CLOSE,141,7,38,10
     LTEXT           "Kaillera protocol and API:\n(c) 2001-2002 Christophe Thibault\n------------------------------------------------------",IDC_STATIC,7,7,113,24
-    PUSHBUTTON      "Open Kaillera Website",BTN_OKAI,100,57,79,10
+    PUSHBUTTON      "Open Kaillera Website",BTN_OKAI,100,71,79,10
     LTEXT           "n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera",IDC_STATIC,7,33,117,16
-    PUSHBUTTON      "Useage Policy",BTN_USEAGE,45,57,54,10
-    PUSHBUTTON      "License",BTN_LICENSE,7,57,38,10
+    PUSHBUTTON      "Useage Policy",BTN_USEAGE,45,71,54,10
+    PUSHBUTTON      "License",BTN_LICENSE,7,71,38,10
+    LTEXT           "Language:",IDC_STATIC,7,55,35,8
+    COMBOBOX        IDC_LANG_COMBO,45,53,80,100,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
 KAILLERA_CUSTOMIP DIALOG 0, 0, 186, 28
