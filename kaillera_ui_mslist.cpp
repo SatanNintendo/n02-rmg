@@ -691,6 +691,15 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                         kaillera_mlv.AddColumn(LNG(COL_SERVER), 120);
                         kaillera_mlv.AddColumn(LNG(COL_LOCATION), 80);
                         kaillera_mlv.AddColumn(LNG(COL_IP), 90);
+                        /* Re-apply column headers to ensure translated text is set */
+                        kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                        kaillera_mlv.SetColumnHeader(1, LNG(COL_EMULATOR));
+                        kaillera_mlv.SetColumnHeader(2, LNG(COL_USER));
+                        kaillera_mlv.SetColumnHeader(3, LNG(COL_PING));
+                        kaillera_mlv.SetColumnHeader(4, LNG(COL_WAITING));
+                        kaillera_mlv.SetColumnHeader(5, LNG(COL_SERVER));
+                        kaillera_mlv.SetColumnHeader(6, LNG(COL_LOCATION));
+                        kaillera_mlv.SetColumnHeader(7, LNG(COL_IP));
                         kaillera_mlv.FullRowSelect();
                         kaillera_mslistColumn = 3;
                         kaillera_mslistColumnTypes[3] = 0;
@@ -766,6 +775,15 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         kaillera_mlv.AddColumn(LNG(COL_GAME), 50);
                         kaillera_mlv.AddColumn(LNG(COL_VER), 40);
                         kaillera_mlv.AddColumn(LNG(COL_IP), 120);
+                        /* Re-apply column headers to ensure translated text is set.
+                           In some cases AddColumn may not properly persist the header text. */
+                        kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                        kaillera_mlv.SetColumnHeader(1, LNG(COL_LOCATION));
+                        kaillera_mlv.SetColumnHeader(2, LNG(COL_PING));
+                        kaillera_mlv.SetColumnHeader(3, LNG(COL_USERS));
+                        kaillera_mlv.SetColumnHeader(4, LNG(COL_GAME));
+                        kaillera_mlv.SetColumnHeader(5, LNG(COL_VER));
+                        kaillera_mlv.SetColumnHeader(6, LNG(COL_IP));
                         kaillera_mlv.FullRowSelect();
                         kaillera_mslistColumn = 2;
                         kaillera_mslistColumnTypes[2] = 0;

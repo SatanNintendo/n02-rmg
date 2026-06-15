@@ -2752,6 +2752,10 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                         KLSListLv.AddColumn(LNG(COL_SERVER_NAME), 160);
                         KLSListLv.AddColumn(LNG(COL_IP), 150);
                         KLSListLv.AddColumn(LNG(COL_PING), 60);
+                        /* Re-apply column headers to ensure translated text is set */
+                        KLSListLv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                        KLSListLv.SetColumnHeader(1, LNG(COL_IP));
+                        KLSListLv.SetColumnHeader(2, LNG(COL_PING));
                         KLSListLv.FullRowSelect();
                         
                                 

@@ -12,7 +12,7 @@
 ; \n represents a newline, \r\n represents a Windows newline.
 ; The first line after this comment block (LANG_NAME) is the display name.
 
-LANG_NAME=English
+LANG_NAME=English / English
 
 ; ============================================================================
 ; DIALOG CAPTIONS

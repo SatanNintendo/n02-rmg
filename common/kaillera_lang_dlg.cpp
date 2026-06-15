@@ -179,6 +179,51 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, BTN_ADD, LNG(MLIST_BTN_ADD_LOCAL));
         SetDlgText(hDlg, BTN_REFRESH, LNG(MLIST_BTN_REFRESH));
         SetDlgText(hDlg, BTN_WGAMES, LNG(MLIST_BTN_WAITING_GAMES));
+        /* Update ListView column headers for the master server list.
+           The KAILLERA_MLIST dialog is shared by two dialog procs
+           (MasterSLDialogProc with 7 cols and MasterWGLDialogProc with 8 cols).
+           We detect which layout is active by checking the column count. */
+        {
+            HWND hLv = GetDlgItem(hDlg, LV_SLIST);
+            if (hLv != NULL) {
+                /* Get column count via the header control:
+                   LVM_GETHEADER = 0x101F, HDM_GETITEMCOUNT = 0x1200 */
+                HWND hHdr = (HWND)SendMessage(hLv, 0x101F, 0, 0);
+                int colCount = (hHdr != NULL) ? (int)SendMessage(hHdr, 0x1200, 0, 0) : 0;
+                if (colCount > 0) {
+                    /* Helper lambda to set a column header.
+                       LVM_SETCOLUMNA = 0x105F (LVM_FIRST + 95) */
+                    auto setColText = [&](int col, const char* text) {
+                        LVCOLUMNA lvc;
+                        lvc.mask = LVCF_TEXT;
+                        lvc.iSubItem = col;
+                        lvc.pszText = const_cast<LPSTR>(text);
+                        SendMessage(hLv, 0x105F, (WPARAM)col, (LPARAM)&lvc);
+                    };
+
+                    if (colCount == 7) {
+                        /* MasterSLDialogProc: Server Name, Location, Ping, Users, Game, Ver, IP */
+                        setColText(0, LNG(COL_SERVER_NAME));
+                        setColText(1, LNG(COL_LOCATION));
+                        setColText(2, LNG(COL_PING));
+                        setColText(3, LNG(COL_USERS));
+                        setColText(4, LNG(COL_GAME));
+                        setColText(5, LNG(COL_VER));
+                        setColText(6, LNG(COL_IP));
+                    } else if (colCount == 8) {
+                        /* MasterWGLDialogProc: Server Name, Emulator, User, Ping, Waiting, Server, Location, IP */
+                        setColText(0, LNG(COL_SERVER_NAME));
+                        setColText(1, LNG(COL_EMULATOR));
+                        setColText(2, LNG(COL_USER));
+                        setColText(3, LNG(COL_PING));
+                        setColText(4, LNG(COL_WAITING));
+                        setColText(5, LNG(COL_SERVER));
+                        setColText(6, LNG(COL_LOCATION));
+                        setColText(7, LNG(COL_IP));
+                    }
+                }
+            }
+        }
         break;
 
     case KAILLERA_SDLG:
