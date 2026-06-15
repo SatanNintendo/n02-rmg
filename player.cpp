@@ -411,7 +411,7 @@ void RecordsList_DeleteSelected(){
 static const char* colKeys[PB_NUM_COLS] = { "PBColDate", "PBColPlayers", "PBColGame", "PBColDuration", "PBColSize", "PBColFilename" };
 static const char* colVisKeys[PB_NUM_COLS] = { "PBVisDate", "PBVisPlayers", "PBVisGame", "PBVisDuration", "PBVisSize", "PBVisFilename" };
 static const int colDefaults[PB_NUM_COLS] = { 80, 160, 200, 60, 60, 150 };
-static const char* colNames[PB_NUM_COLS] = { LNG(COL_DATE), LNG(COL_PLAYERS), LNG(COL_GAME), LNG(COL_DURATION), LNG(COL_SIZE), LNG(COL_FILENAME) };
+static const char* colNames[PB_NUM_COLS]; /* populated in WM_INITDIALOG after LangInit() */
 static bool col_visible[PB_NUM_COLS];
 static int col_saved_width[PB_NUM_COLS];
 
@@ -486,6 +486,13 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         case WM_INITDIALOG:
                 {
                         ApplyDialogLanguage(hDlg, RECORDER_PLAYBACK);
+                        /* Initialize column names AFTER LangInit() has loaded translations */
+                        colNames[0] = LNG(COL_DATE);
+                        colNames[1] = LNG(COL_PLAYERS);
+                        colNames[2] = LNG(COL_GAME);
+                        colNames[3] = LNG(COL_DURATION);
+                        colNames[4] = LNG(COL_SIZE);
+                        colNames[5] = LNG(COL_FILENAME);
                         RecordsListDlg = hDlg;
                         RecordsListDlg_list.initialize();
                         RecordsListDlg_list.handle = GetDlgItem(hDlg, LV_GLIST);
