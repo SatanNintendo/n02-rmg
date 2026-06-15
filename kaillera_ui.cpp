@@ -2489,7 +2489,7 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         /* Populate language combo */
                         HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
                         if (hCombo) {
-                                const char* currentLang = LangGetName();
+                                const char* currentLang = LangGetFile();
                                 struct LangEnumCtx {
                                         HWND combo;
                                         const char* current;
