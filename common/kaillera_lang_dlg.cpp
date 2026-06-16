@@ -113,6 +113,28 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         ReplaceStaticText(hDlg, "Local List", LNG(SSDLG_GRP_LOCAL_LIST));
         ReplaceStaticText(hDlg, "Frame Delay:", LNG(SSDLG_LBL_FRAME_DELAY));
         ReplaceStaticText(hDlg, "Mode", LNG(MAIN_GRP_MODE));
+        /* Update ListView column headers for the local server list */
+        {
+            HWND hLv = GetDlgItem(hDlg, LV_ULIST);
+            if (hLv != NULL) {
+                HWND hHdr = ListView_GetHeader(hLv);
+                int colCount = (hHdr != NULL) ? Header_GetItemCount(hHdr) : 0;
+                if (colCount >= 3) {
+                    /* KLSListLv: Server Name, IP, Ping (3 columns) */
+                    LVCOLUMNA lvc;
+                    lvc.mask = LVCF_TEXT;
+                    lvc.iSubItem = 0;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_SERVER_NAME));
+                    ListView_SetColumn(hLv, 0, &lvc);
+                    lvc.iSubItem = 1;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_IP));
+                    ListView_SetColumn(hLv, 1, &lvc);
+                    lvc.iSubItem = 2;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_PING));
+                    ListView_SetColumn(hLv, 2, &lvc);
+                }
+            }
+        }
         break;
 
     case CONNECTION_DIALOG:
@@ -181,9 +203,9 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, BTN_REFRESH, LNG(MLIST_BTN_REFRESH));
         SetDlgText(hDlg, BTN_WGAMES, LNG(MLIST_BTN_WAITING_GAMES));
         /* Update ListView column headers for the master server list.
-           The KAILLERA_MLIST dialog is shared by two dialog procs
-           (MasterSLDialogProc with 7 cols and MasterWGLDialogProc with 8 cols).
-           We detect which layout is active by checking the column count. */
+           The KAILLERA_MLIST dialog is shared by multiple dialog procs
+           with different column layouts. We detect which layout is active
+           by checking the column count. */
         {
             HWND hLv = GetDlgItem(hDlg, LV_SLIST);
             if (hLv != NULL) {
@@ -217,6 +239,14 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
                         setColText(5, LNG(COL_SERVER));
                         setColText(6, LNG(COL_LOCATION));
                         setColText(7, LNG(COL_IP));
+                    } else if (colCount == 6) {
+                        /* p2p_MasterSLDialogProc: Game, Emulator, User, Ping, Host, Code */
+                        setColText(0, LNG(COL_GAME));
+                        setColText(1, LNG(COL_EMULATOR));
+                        setColText(2, LNG(COL_USER));
+                        setColText(3, LNG(COL_PING));
+                        setColText(4, LNG(COL_HOST));
+                        setColText(5, LNG(COL_CODE));
                     }
                 }
             }
@@ -238,6 +268,65 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, BTN_ADVERTISE, LNG(SDLG_BTN_ADVERTISE));
         /* IDC_STATIC labels */
         ReplaceStaticText(hDlg, "Join msg:", LNG(SDLG_LBL_JOIN_MSG));
+        /* Update ListView column headers - users list (LV_ULIST) */
+        {
+            HWND hLv = GetDlgItem(hDlg, LV_ULIST);
+            if (hLv != NULL) {
+                HWND hHdr = ListView_GetHeader(hLv);
+                int colCount = (hHdr != NULL) ? Header_GetItemCount(hHdr) : 0;
+                if (colCount == 5) {
+                    /* Users: Name, Ping, UID, Status, Connection */
+                    LVCOLUMNA lvc;
+                    lvc.mask = LVCF_TEXT;
+                    lvc.iSubItem = 0;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_NAME));
+                    ListView_SetColumn(hLv, 0, &lvc);
+                    lvc.iSubItem = 1;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_PING));
+                    ListView_SetColumn(hLv, 1, &lvc);
+                    lvc.iSubItem = 2;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_UID));
+                    ListView_SetColumn(hLv, 2, &lvc);
+                    lvc.iSubItem = 3;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_STATUS));
+                    ListView_SetColumn(hLv, 3, &lvc);
+                    lvc.iSubItem = 4;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_CONNECTION));
+                    ListView_SetColumn(hLv, 4, &lvc);
+                }
+            }
+        }
+        /* Update ListView column headers - games list (LV_GLIST) */
+        {
+            HWND hLv = GetDlgItem(hDlg, LV_GLIST);
+            if (hLv != NULL) {
+                HWND hHdr = ListView_GetHeader(hLv);
+                int colCount = (hHdr != NULL) ? Header_GetItemCount(hHdr) : 0;
+                if (colCount == 6) {
+                    /* Games: Game, GameID, Emulator, User, Status, Users */
+                    LVCOLUMNA lvc;
+                    lvc.mask = LVCF_TEXT;
+                    lvc.iSubItem = 0;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_GAME));
+                    ListView_SetColumn(hLv, 0, &lvc);
+                    lvc.iSubItem = 1;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_GAME_ID));
+                    ListView_SetColumn(hLv, 1, &lvc);
+                    lvc.iSubItem = 2;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_EMULATOR));
+                    ListView_SetColumn(hLv, 2, &lvc);
+                    lvc.iSubItem = 3;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_USER));
+                    ListView_SetColumn(hLv, 3, &lvc);
+                    lvc.iSubItem = 4;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_STATUS));
+                    ListView_SetColumn(hLv, 4, &lvc);
+                    lvc.iSubItem = 5;
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_USERS));
+                    ListView_SetColumn(hLv, 5, &lvc);
+                }
+            }
+        }
         break;
 
     case KAILLERA_OPTIONS:

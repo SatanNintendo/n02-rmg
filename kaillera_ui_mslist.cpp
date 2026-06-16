@@ -669,14 +669,9 @@ void kaillera_wgdlg_connect_selected(HWND hDlg){
 LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
                 case WM_INITDIALOG:
-                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
-
                         kaillera_mslref = hDlg;
-
                         refresher_thread.running = false;
-
                         SetWindowText(hDlg, LNG(MSL_MASTER_WAITING));
-
                         kaillera_mlv.handle = GetDlgItem(hDlg, LV_SLIST);
                         kaillera_mlv.initialize();
                         for (int i = 0; i < kMslistMaxColumns; i++) {
@@ -691,16 +686,10 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                         kaillera_mlv.AddColumn(LNG(COL_SERVER), 120);
                         kaillera_mlv.AddColumn(LNG(COL_LOCATION), 80);
                         kaillera_mlv.AddColumn(LNG(COL_IP), 90);
-                        /* Re-apply column headers to ensure translated text is set */
-                        kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
-                        kaillera_mlv.SetColumnHeader(1, LNG(COL_EMULATOR));
-                        kaillera_mlv.SetColumnHeader(2, LNG(COL_USER));
-                        kaillera_mlv.SetColumnHeader(3, LNG(COL_PING));
-                        kaillera_mlv.SetColumnHeader(4, LNG(COL_WAITING));
-                        kaillera_mlv.SetColumnHeader(5, LNG(COL_SERVER));
-                        kaillera_mlv.SetColumnHeader(6, LNG(COL_LOCATION));
-                        kaillera_mlv.SetColumnHeader(7, LNG(COL_IP));
                         kaillera_mlv.FullRowSelect();
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                         kaillera_mslistColumn = 3;
                         kaillera_mslistColumnTypes[3] = 0;
                         kaillera_mslistColumnOrder[3] = 1;
@@ -740,14 +729,6 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_MASTER_WAITING));
-                kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
-                kaillera_mlv.SetColumnHeader(1, LNG(COL_EMULATOR));
-                kaillera_mlv.SetColumnHeader(2, LNG(COL_USER));
-                kaillera_mlv.SetColumnHeader(3, LNG(COL_PING));
-                kaillera_mlv.SetColumnHeader(4, LNG(COL_WAITING));
-                kaillera_mlv.SetColumnHeader(5, LNG(COL_SERVER));
-                kaillera_mlv.SetColumnHeader(6, LNG(COL_LOCATION));
-                kaillera_mlv.SetColumnHeader(7, LNG(COL_IP));
                 break;
         };
         return 0;
@@ -757,18 +738,10 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         static bool xxx = false;
         switch (uMsg) {
                 case WM_INITDIALOG:
-                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                         xxx = false;
                         kaillera_mslref = hDlg;
                         refresher_thread.running = false;
                         SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
-                        /* DEBUG: Show what LNG(COL_SERVER_NAME) returns */
-                        {
-                                char dbg[256];
-                                wsprintfA(dbg, "COL_SERVER_NAME=[%s]\nLangGetCount=%d\nLangFile=[%s]\nLangName=[%s]",
-                                        LNG(COL_SERVER_NAME), LangGetCount(), LangGetFile(), LangGetName());
-                                MessageBoxA(hDlg, dbg, "LANG DEBUG", MB_OK);
-                        }
                         kaillera_mlv.handle = GetDlgItem(hDlg, LV_SLIST);
                         kaillera_mlv.initialize();
                         for (int i = 0; i < kMslistMaxColumns; i++) {
@@ -782,16 +755,10 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         kaillera_mlv.AddColumn(LNG(COL_GAME), 50);
                         kaillera_mlv.AddColumn(LNG(COL_VER), 40);
                         kaillera_mlv.AddColumn(LNG(COL_IP), 120);
-                        /* Re-apply column headers to ensure translated text is set.
-                           In some cases AddColumn may not properly persist the header text. */
-                        kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
-                        kaillera_mlv.SetColumnHeader(1, LNG(COL_LOCATION));
-                        kaillera_mlv.SetColumnHeader(2, LNG(COL_PING));
-                        kaillera_mlv.SetColumnHeader(3, LNG(COL_USERS));
-                        kaillera_mlv.SetColumnHeader(4, LNG(COL_GAME));
-                        kaillera_mlv.SetColumnHeader(5, LNG(COL_VER));
-                        kaillera_mlv.SetColumnHeader(6, LNG(COL_IP));
                         kaillera_mlv.FullRowSelect();
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                         kaillera_mslistColumn = 2;
                         kaillera_mslistColumnTypes[2] = 0;
                         kaillera_mslistColumnOrder[2] = 1;
@@ -854,13 +821,6 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
-                kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
-                kaillera_mlv.SetColumnHeader(1, LNG(COL_LOCATION));
-                kaillera_mlv.SetColumnHeader(2, LNG(COL_PING));
-                kaillera_mlv.SetColumnHeader(3, LNG(COL_USERS));
-                kaillera_mlv.SetColumnHeader(4, LNG(COL_GAME));
-                kaillera_mlv.SetColumnHeader(5, LNG(COL_VER));
-                kaillera_mlv.SetColumnHeader(6, LNG(COL_IP));
                 break;
         };
         return 0;
@@ -1174,7 +1134,6 @@ public:
 LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
                 case WM_INITDIALOG:
-                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                         kaillera_mslref = hDlg;
                         p2p_wg_refresher_thread.running = false;
                         SetWindowText(hDlg, LNG(MSL_WAITING_GAMES));
@@ -1192,6 +1151,9 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         kaillera_mlv.AddColumn(LNG(COL_HOST), 0);
                         kaillera_mlv.AddColumn(LNG(COL_CODE), 0);
                         kaillera_mlv.FullRowSelect();
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                         kaillera_mslistColumn = 3;
                         kaillera_mslistColumnTypes[3] = 0;
                         kaillera_mslistColumnOrder[3] = 1;
@@ -1231,12 +1193,6 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_WAITING_GAMES));
-                kaillera_mlv.SetColumnHeader(0, LNG(COL_GAME));
-                kaillera_mlv.SetColumnHeader(1, LNG(COL_EMULATOR));
-                kaillera_mlv.SetColumnHeader(2, LNG(COL_USER));
-                kaillera_mlv.SetColumnHeader(3, LNG(COL_PING));
-                kaillera_mlv.SetColumnHeader(4, LNG(COL_HOST));
-                kaillera_mlv.SetColumnHeader(5, LNG(COL_CODE));
                 break;
         };
         return 0;

@@ -1621,7 +1621,8 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
         switch (uMsg) {
         case WM_INITDIALOG:
                 {
-                        ApplyDialogLanguage(hDlg, KAILLERA_SDLG);
+                        // ApplyDialogLanguage is called later, after ListView columns are created,
+                        // so that column headers can be translated too.
                         RECT originalClientRect = { 0, 0, 0, 0 };
                         GetClientRect(hDlg, &originalClientRect);
 
@@ -1666,6 +1667,7 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                                 SetWindowText(hDlg, xx);
                         }
                         kaillera_sdlg_userslv.handle = GetDlgItem(hDlg, LV_ULIST);
+                        kaillera_sdlg_userslv.initialize();
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_NAME), 80);
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_PING), 35);
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_UID), 44);
@@ -1676,6 +1678,7 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         kaillera_sdlg_userslvColumnOrder[1] = 1;
 
                         kaillera_sdlg_gameslv.handle = GetDlgItem(hDlg, LV_GLIST);
+                        kaillera_sdlg_gameslv.initialize();
                         kaillera_sdlg_gameslv.AddColumn(LNG(COL_GAME), 285);
                         kaillera_sdlg_gameslv.AddColumn(LNG(COL_GAME_ID), 60);
                         kaillera_sdlg_gameslv.AddColumn(LNG(COL_EMULATOR), 130);
@@ -1718,6 +1721,10 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         kaillera_sdlg_LV_GULIST.AddColumn(LNG(COL_CONNECTION), 0);
                         kaillera_sdlg_LV_GULIST.AddColumn(LNG(COL_DELAY), 120);
                         kaillera_sdlg_LV_GULIST.FullRowSelect();
+
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_SDLG);
 
                         kaillera_sdlgNormalMode();
                         kaillera_sdlg_create_games_list_menu();
@@ -2004,19 +2011,6 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
         case WM_LANG_CHANGED:
                 {
                         ApplyDialogLanguage(hDlg, KAILLERA_SDLG);
-                        /* Update ListView column headers - users */
-                        kaillera_sdlg_userslv.SetColumnHeader(0, LNG(COL_NAME));
-                        kaillera_sdlg_userslv.SetColumnHeader(1, LNG(COL_PING));
-                        kaillera_sdlg_userslv.SetColumnHeader(2, LNG(COL_UID));
-                        kaillera_sdlg_userslv.SetColumnHeader(3, LNG(COL_STATUS));
-                        kaillera_sdlg_userslv.SetColumnHeader(4, LNG(COL_CONNECTION));
-                        /* Update ListView column headers - games */
-                        kaillera_sdlg_gameslv.SetColumnHeader(0, LNG(COL_GAME));
-                        kaillera_sdlg_gameslv.SetColumnHeader(1, LNG(COL_GAME_ID));
-                        kaillera_sdlg_gameslv.SetColumnHeader(2, LNG(COL_EMULATOR));
-                        kaillera_sdlg_gameslv.SetColumnHeader(3, LNG(COL_USER));
-                        kaillera_sdlg_gameslv.SetColumnHeader(4, LNG(COL_STATUS));
-                        kaillera_sdlg_gameslv.SetColumnHeader(5, LNG(COL_USERS));
                 }
                 break;
                         case WM_NOTIFY:
@@ -2681,7 +2675,8 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
         switch (uMsg) {
         case WM_INITDIALOG:
                 {
-                        ApplyDialogLanguage(hDlg, KAILLERA_SSDLG);
+                        // ApplyDialogLanguage is called later, after ListView columns are created,
+                        // so that column headers can be translated too.
                         // Add WS_EX_APPWINDOW and remove WS_EX_TOOLWINDOW to show in Windows taskbar
                         LONG_PTR exStyle = GetWindowLongPtr(hDlg, GWL_EXSTYLE);
                         exStyle |= WS_EX_APPWINDOW;
@@ -2749,14 +2744,29 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
 
                         
                         KLSListLv.handle = GetDlgItem(hDlg, LV_ULIST);
+                        KLSListLv.initialize();
                         KLSListLv.AddColumn(LNG(COL_SERVER_NAME), 160);
                         KLSListLv.AddColumn(LNG(COL_IP), 150);
                         KLSListLv.AddColumn(LNG(COL_PING), 60);
-                        /* Re-apply column headers to ensure translated text is set */
-                        KLSListLv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
-                        KLSListLv.SetColumnHeader(1, LNG(COL_IP));
-                        KLSListLv.SetColumnHeader(2, LNG(COL_PING));
                         KLSListLv.FullRowSelect();
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_SSDLG);
+                        /* DEBUG: Diagnostic - show what LNG(COL_SERVER_NAME) returns.
+                           This helps identify if the .lng file lookup is failing. */
+                        {
+                                char dbg[512];
+                                wsprintfA(dbg, "LNG(COL_SERVER_NAME) = [%s]\n"
+                                               "LangGetCount = %d\n"
+                                               "LangFile = [%s]\n"
+                                               "LangName = [%s]\n"
+                                               "\nIf the value above is 'Name' instead of\n"
+                                               "the translated text, the .lng file is not\n"
+                                               "being found or the key is missing.",
+                                        LNG(COL_SERVER_NAME), LangGetCount(),
+                                        LangGetFile(), LangGetName());
+                                MessageBoxA(hDlg, dbg, "Language Debug", MB_OK);
+                        }
                         
                                 
                                 KLSListLoad();
@@ -2835,10 +2845,6 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                 {
                         ApplyDialogLanguage(hDlg, KAILLERA_SSDLG);
                         { char wt[64]; wsprintf(wt, LNG(N02_WINDOW_TITLE), N02_VER); SetWindowText(hDlg, wt); }
-                        /* Update ListView column headers */
-                        KLSListLv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
-                        KLSListLv.SetColumnHeader(1, LNG(COL_IP));
-                        KLSListLv.SetColumnHeader(2, LNG(COL_PING));
                         /* Update frame delay combo - clear and re-add items */
                         HWND hFdlyCombo = GetDlgItem(hDlg, IDC_QUITMSG);
                         int saved_fdly = (int)SendMessage(hFdlyCombo, CB_GETCURSEL, 0, 0);

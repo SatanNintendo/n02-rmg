@@ -754,6 +754,16 @@ const char* LangGet(const char* key) {
         if (found) {
             return found->value;
         }
+
+        /* Linear search fallback: if bsearch fails (e.g. due to sort
+           inconsistency or pointer remapping issues), try a slow linear
+           scan. This ensures keys present in the .lng file are always
+           found even if the binary search has a subtle bug. */
+        for (int i = 0; i < g_lang.count; i++) {
+            if (strcmp(g_lang.entries[i].key, key) == 0) {
+                return g_lang.entries[i].value;
+            }
+        }
     }
 
     /* Fallback: search built-in English defaults */
