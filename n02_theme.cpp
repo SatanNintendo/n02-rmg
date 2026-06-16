@@ -175,12 +175,6 @@ static bool IsTabControl(HWND hwnd) {
         return (strcmp(className, "SysTabControl32") == 0);
 }
 
-static bool IsHeaderControl(HWND hwnd) {
-        char className[32];
-        GetClassNameA(hwnd, className, sizeof(className));
-        return (strcmp(className, "SysHeader32") == 0);
-}
-
 static bool IsStaticControl(HWND hwnd) {
         char className[32];
         GetClassNameA(hwnd, className, sizeof(className));
@@ -327,20 +321,6 @@ void Theme_ApplyToDialogChildren(HWND hDlg) {
 
                         if (IsListViewControl(child)) {
                                 Theme_ApplyToListView(child);
-
-                                /* Theme the ListView's embedded header control
-                                 * (SysHeader32). EnumChildWindows only enumerates
-                                 * DIRECT children of the dialog, but the header
-                                 * is a grandchild — child of the ListView. We
-                                 * fetch it via ListView_GetHeader and disable
-                                 * its visual styles. The actual painting is done
-                                 * by Theme_HandleHeaderNotify() via NM_CUSTOMDRAW
-                                 * (see WM_NOTIFY in each dialog proc). */
-                                HWND hHeader = ListView_GetHeader(child);
-                                if (hHeader != NULL) {
-                                        SetWindowTheme(hHeader, L"", L"");
-                                        InvalidateRect(hHeader, NULL, TRUE);
-                                }
                         } else if (IsRichEditControl(child)) {
                                 Theme_ApplyToRichEdit(child);
                         }
@@ -378,15 +358,6 @@ void Theme_ApplyToDialogChildren(HWND hDlg) {
                             IsScrollBarControl(child) ||
                             IsTabControl(child)) {
                                 SetWindowTheme(child, NULL, NULL);
-                        }
-
-                        /* Revert ListView header visual styles. */
-                        if (IsListViewControl(child)) {
-                                HWND hHeader = ListView_GetHeader(child);
-                                if (hHeader != NULL) {
-                                        SetWindowTheme(hHeader, NULL, NULL);
-                                        InvalidateRect(hHeader, NULL, TRUE);
-                                }
                         }
 
                         /* Convert BS_OWNERDRAW buttons back to BS_PUSHBUTTON
@@ -709,74 +680,6 @@ LRESULT Theme_HandleTabNotify(LPARAM lParam) {
                  * draws the tab shape itself; we just override text colors. */
                 SetTextColor(cd->hdc, ThemeColors::DarkTabText);
                 SetBkColor(cd->hdc, ThemeColors::DarkTabBg);
-                return CDRF_NEWFONT;
-
-        default:
-                return -1;
-        }
-}
-
-/* ============================================================================
- * Header Control NM_CUSTOMDRAW Handler (ListView column headers)
- * ============================================================================ */
-
-LRESULT Theme_HandleHeaderNotify(LPARAM lParam) {
-        if (!g_dark_mode)
-                return -1;
-
-        LPNMHDR hdr = (LPNMHDR)lParam;
-        if (hdr == NULL)
-                return -1;
-
-        /* Only handle SysHeader32 notifications. The ListView forwards
-         * NM_CUSTOMDRAW from its embedded header to its own parent (the
-         * dialog), so we receive it here. */
-        char cls[32] = {0};
-        GetClassNameA(hdr->hwndFrom, cls, sizeof(cls));
-        if (strcmp(cls, "SysHeader32") != 0)
-                return -1;
-
-        if (hdr->code != NM_CUSTOMDRAW)
-                return -1;
-
-        LPNMCUSTOMDRAW cd = (LPNMCUSTOMDRAW)lParam;
-
-        switch (cd->dwDrawStage) {
-        case CDDS_PREPAINT:
-                /* Ask for per-item notifications so we get CDDS_ITEMPREPAINT
-                 * for each column header. */
-                return CDRF_NOTIFYITEMDRAW;
-
-        case CDDS_ITEMPREPAINT:
-                /* Override the header item text and background colors.
-                 *
-                 * The header control uses a "button-like" appearance. Without
-                 * this override, it would use COLOR_BTNFACE (light gray) for
-                 * the background and COLOR_BTNTEXT (black) for the text,
-                 * producing the bright strip with black text that users see
-                 * as "black on dark" against the surrounding dark theme.
-                 *
-                 * We set the text color to DarkHeaderText (light gray) and
-                 * the background to DarkHeaderBg (dark gray). The system
-                 * still draws the separator lines and sort arrow, but the
-                 * fill and text use our colors.
-                 *
-                 * Returning CDRF_NEWFONT tells the header to re-select the
-                 * font we set in the DC (and apply our text/bg colors). */
-                SetTextColor(cd->hdc, ThemeColors::DarkHeaderText);
-                SetBkColor(cd->hdc, ThemeColors::DarkHeaderBg);
-
-                /* Fill the entire item rect with the dark header background.
-                 * Without this, the system fills with COLOR_BTNFACE which is
-                 * light gray — even after SetBkColor. The header's classic
-                 * renderer paints the background with the system brush
-                 * (COLOR_BTNFACE) BEFORE drawing the text, ignoring our
-                 * SetBkColor for the fill step. So we pre-fill here. */
-                {
-                        HBRUSH hBrush = CreateSolidBrush(ThemeColors::DarkHeaderBg);
-                        FillRect(cd->hdc, &cd->rc, hBrush);
-                        DeleteObject(hBrush);
-                }
                 return CDRF_NEWFONT;
 
         default:

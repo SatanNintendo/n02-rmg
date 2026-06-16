@@ -594,12 +594,6 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 break;
         case WM_NOTIFY:
                 {
-                /* Dark-mode ListView column header custom draw.
-                 * Returns >= 0 if it handled the notification (so we
-                 * return that value). */
-                LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
-                if (hdrResult >= 0) return hdrResult;
-
                 if(((LPNMHDR)lParam)->code==NM_DBLCLK && ((LPNMHDR)lParam)->hwndFrom==RecordsListDlg_list.handle){
                         RecordsList_PlaySelected();
                 }

@@ -1964,10 +1964,6 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                 LRESULT tabResult = Theme_HandleTabNotify(lParam);
                 if (tabResult >= 0) return tabResult;
 
-                /* Dark-mode ListView column header custom draw. */
-                LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
-                if (hdrResult >= 0) return hdrResult;
-
                 NMHDR* nParam;
                 nParam = (NMHDR*)lParam;
                 if (nParam->hwndFrom == p2p_ui_modeseltab && nParam->code == TCN_SELCHANGE){
