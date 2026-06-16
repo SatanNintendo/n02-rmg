@@ -1,0 +1,36 @@
+--- n02-rmg-master/uihlp.h
++++ n02-rmg-master/uihlp.h
+@@ -142,11 +142,21 @@
+         }
+ 
+         void SetColumnHeader(int colIndex, const char * name){
++                // Update both ListView and Header control.
++                // Column 0 can fail to refresh on some comctl32 versions.
+                 LVCOLUMNA lvc;
+                 lvc.mask        = LVCF_TEXT;
+                 lvc.iSubItem    = colIndex;
+                 lvc.pszText     = const_cast<LPSTR>(name);
+                 ListView_SetColumn(handle, colIndex, &lvc);
++
++                HWND hHeader = ListView_GetHeader(handle);
++                if (hHeader) {
++                        HDITEMA hdi = {};
++                        hdi.mask = HDI_TEXT;
++                        hdi.pszText = const_cast<LPSTR>(name);
++                        Header_SetItem(hHeader, colIndex, &hdi);
++                }
+         }
+ 
+         void DeleteAllRows(){
+
+--- n02-rmg-master/kaillera_ui_mslist.cpp
++++ n02-rmg-master/kaillera_ui_mslist.cpp
+@@ -690,6 +690,7 @@
+                         /* Apply language to all controls including ListView column headers.
+                            Must be called AFTER columns are created so headers can be updated. */
+                         ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
++	kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                         kaillera_mslistColumn = 3;
+                         kaillera_mslistColumnTypes[3] = 0;
+                         kaillera_mslistColumnOrder[3] = 1;
+

@@ -1,0 +1,1205 @@
+#include "kaillera_ui.h"
+#include "p2p_ui.h"
+#include "p2p_appcode.h"
+
+#include <windows.h>
+#include <limits.h>
+#include <stddef.h>
+#include "uihlp.h"
+
+#include "resource.h"
+#include "kailleraclient.h"
+#include "common/nSTL.h"
+#include "common/k_socket.h"
+#include "common/nThread.h"
+#include "common/nSettings.h"
+
+#include "errr.h"
+#include "common/kaillera_lang.h"
+#include "common/kaillera_lang_dlg.h"
+
+
+void ConnectToServer(char * ip, int port, HWND pDlg, char*name);
+extern HWND kaillera_ssdlg;
+
+
+HWND kaillera_mslref;
+#define KAILLERA_PING_LIMIT 1000
+#define KAILLERA_PING_SIMULT 15
+
+class PingSocket: public k_socket {
+        DWORD start_time;
+        int state;
+public:
+        unsigned int limit;
+        char * ptr;
+        char * temp;
+        PingSocket(){
+                k_socket();
+                state = 0;
+                start_time = 0;
+                limit = 0;
+                initialize(0, -1);
+        }
+        ~PingSocket(){
+                close();
+        }
+        void ping_host(char * host, int p_port, char * DATA_ = "PING", int SIZE_ = 5){
+                set_address(host, p_port);
+                start_time = GetTickCount();
+                send(DATA_, SIZE_);
+                limit = KAILLERA_PING_LIMIT;
+        }
+        bool is_done(DWORD tiNow){
+                if (tiNow - start_time > KAILLERA_PING_LIMIT){
+                        start_time = -1;
+                        return true;
+                } else {
+                        if (has_data()){
+                                start_time = tiNow - start_time;
+                                return true;
+                        }
+                        return false;
+                }
+        }
+        int return_ping(){
+                if (start_time != -1){
+                        return start_time;
+                }
+                start_time = 0;
+                return -1;
+        }
+        static bool step(int ms){
+                return check_sockets(0, ms);
+        }
+};
+
+
+int DownloadListToBuffer(char * buffer, int size, char * url){
+        char urx[2000];
+        strcpy(urx, url);
+        char * urlbuf = urx;
+        char * host;
+        char * port;
+        char addr[500]; 
+        unsigned long ul = 5;
+        sockaddr_in server;
+        char * RequestBuffer = (char*)malloc(1024);
+        char * proto = strstr(urlbuf, "http://");
+        if (proto == NULL) {
+                free(RequestBuffer);
+                return 0;
+        }
+        host = proto + 7;
+        if(strstr(host, ":")!=NULL){
+                port = strstr(host, ":")+1;
+                server.sin_port = htons(atoi(port));
+                if (strstr(port, "/") == NULL) {
+                        free(RequestBuffer);
+                        return 0;
+                }
+                strcpy(addr, strstr(port, "/"));
+                *(port-1) = 0x00;
+        }
+        else{
+                server.sin_port = htons(80);
+                if (strstr(host, "/") == NULL) {
+                        free(RequestBuffer);
+                        return 0;
+                }
+                strcpy(addr, strstr(host, "/"));
+                *(strstr(host, "/"))=0x00;
+        }
+        wsprintf(RequestBuffer,"GET %s HTTP/1.0\r\nHost:%s\r\n\r\n", addr, host);
+        //socket
+        SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+        if(s==SOCKET_ERROR) {
+                free(RequestBuffer);
+                return 0;
+        }
+        //ioctlsocket(s, FIONBIO, &ul);
+        if(*(host)> 0x30 && *(host)<0x3A){//ip address
+                server.sin_addr.s_addr = inet_addr(host);
+        } else {
+                struct hostent* he = gethostbyname(host);
+                if (he == NULL || he->h_addr_list == NULL || he->h_addr_list[0] == NULL) {
+                        closesocket(s);
+                        free(RequestBuffer);
+                        return 0;
+                }
+                server.sin_addr = *(struct in_addr*)he->h_addr_list[0];
+        }
+        n02_TRACE();
+        server.sin_family = AF_INET;
+        if(connect(s, (struct sockaddr *)&server, sizeof(server))!=0){
+                if(WSAGetLastError()!=WSAEWOULDBLOCK) {
+                        closesocket(s);
+                        free(RequestBuffer);
+                        return 0;
+                }
+        }
+        Sleep(300);
+        {
+                size_t reqLen = strlen(RequestBuffer);
+                int sendLen = (reqLen > (size_t)INT_MAX) ? INT_MAX : (int)reqLen;
+                sendto(s, RequestBuffer, sendLen, 0, (sockaddr*)&server, sizeof(server));
+        }
+        free(RequestBuffer);
+        char * bf = buffer;
+        int il = size;
+        DWORD t = GetTickCount();
+        while((GetTickCount()-t) < 60000){
+                Sleep(25);
+                int rec = recv(s, bf, il, 0);
+                if(rec<=0)//if(rec==0)
+                        break;
+                //if(rec==SOCKET_ERROR && WSAGetLastError()==10035)
+                        //continue;
+                bf += rec;
+                il -= rec;
+        }
+        closesocket(s);
+        return size-il;
+}
+static nLVw kaillera_mlv;
+int kaillera_mslistColumn;
+static const int kMslistMaxColumns = 8;
+int kaillera_mslistColumnTypes[kMslistMaxColumns] = {1, 1, 1, 1, 1, 1, 1, 1};
+int kaillera_mslistColumnOrder[kMslistMaxColumns];
+int CALLBACK kaillera_mslistCompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort){
+        const int sortColumn = (int)lParamSort;
+        int ind1 = kaillera_mlv.Find(lParam1);
+        int ind2 = kaillera_mlv.Find(lParam2);
+        if (ind1 == -1 || ind2 == -1)
+                return 0;
+
+        char ItemText1[128];
+        char ItemText2[128];
+        kaillera_mlv.CheckRow(ItemText1, 128, sortColumn, ind1);
+        kaillera_mlv.CheckRow(ItemText2, 128, sortColumn, ind2);
+        if (kaillera_mslistColumnTypes[sortColumn]) {
+                if (kaillera_mslistColumnOrder[sortColumn])
+                        return strcmp(ItemText1, ItemText2);
+                else
+                        return -1* strcmp(ItemText1, ItemText2);
+        } else {
+                ind1 = atoi(ItemText1);
+                ind2 = atoi(ItemText2);
+
+                if (kaillera_mslistColumnOrder[sortColumn])
+                        return (ind1==ind2? 0 : (ind1>ind2? 1 : -1));
+                else
+                        return (ind1==ind2? 0 : (ind1>ind2? -1 : 1));
+
+        }
+}
+
+void kaillera_mslistReSort() {
+        ListView_SortItems(kaillera_mlv.handle, kaillera_mslistCompareFunc, kaillera_mslistColumn);
+}
+void kaillera_mslistSort(int column) {
+        kaillera_mslistColumn = column;
+
+        if (kaillera_mslistColumnOrder[column])
+                kaillera_mslistColumnOrder[column] = 0;
+        else
+                kaillera_mslistColumnOrder[column] = 5;
+
+        kaillera_mslistReSort();
+}
+class ListRefresher: public nThread {
+public:
+        bool running;
+        bool runn;
+        char buffer[0x8000];
+        slist<PingSocket*, KAILLERA_PING_SIMULT> plist;
+        void refresh_servers(){
+                n02_TRACE();
+                int l = DownloadListToBuffer(buffer, 0x8000, "http://kaillerareborn.2manygames.fr/server_list.php");//DownloadListToBuffer(buffer, 0x8000, "http://kaillera.com/raw_server_list2.php?version=0.9");
+                runn = l > 150;
+                if (runn) {
+                        char * ptr = strstr(buffer, "\r\n\r\n");
+                        if (ptr == NULL)
+                                return;
+                        ptr += 4;
+                        int total=0;
+                        if(ptr==NULL){
+                                return;
+                        }
+                                size_t len = strlen(ptr);
+                                char * end = ptr + len;
+                        union {
+                                char xxz[201];
+                                struct {
+                                        char stt;
+                                        char statusb[200];
+                                }xx;
+                        }xxx;
+                        struct {
+                                unsigned z :2;
+                        } xx;
+                        xx.z = 50;
+                        while (runn && (ptr + 30 < end || plist.size() > 0)) { 
+                                char * name;
+                                if (ptr + 30 < end && plist.size() < KAILLERA_PING_SIMULT && plist.size() < total + 1){
+                                        name = ptr;
+                                        while(*++ptr!='\n'){}*ptr++ = 0;
+                                        char * host = ptr;
+                                        while(*++ptr!=':'){}*ptr++ = 0;
+                                        int port = atoi(ptr);
+                                        while(*++ptr!='\n'){}*ptr++ = 0;
+                                        if (inet_addr(host)==-1)
+                                                continue;
+                                        //      10.0.0.0/8
+                                        if (strncmp("10.", host, 3)==0)
+                                                continue;
+                                        //      192.168.0.0/16
+                                        if (strncmp("192.168.", host, 8)==0)
+                                                continue;
+                                        //  172.16.0.0/12
+                                        if (strncmp("172.", host, 4)==0){
+                                                int secoct = atoi(host+4);
+                                                if (secoct >= 16 && secoct <=31)
+                                                        continue;
+                                        }
+                                        if (strncmp("127.", host, 4)==0)
+                                                continue;
+                                        PingSocket * ps = new PingSocket;
+                                        ps->ping_host(host, port);
+                                        ps->ptr = name;
+                                        plist.add(ps);
+                                        continue;
+                                }
+                                //xxx.xx.stt = st[xx.z++];
+                                wsprintf(xxx.xxz, LNG(MSL_PINGED_SERVERS), total);//wsprintf(xxx.xxz, "Refreshing List... [C: %i, T: %i, P: %i, F: %i]", k_socket::list.size(), total, plist.size(), k_socket::sockets.fd_count);
+                                SetWindowText(kaillera_mslref, xxx.xxz);
+                                PingSocket::step(10);
+                                DWORD ti = GetTickCount();
+                                for (int _x = 0; _x < plist.size(); _x++) {
+                                        PingSocket * ps = plist.get(_x);
+                                        if (ps != 0 && ps->limit != 0 && ps->is_done(ti)){
+                                                int ping = ps->return_ping();
+                                                char * loca = ps->ptr;
+                                                plist.remove(ps);
+                                                delete ps;
+                                                _x--;
+                                                name = loca;
+                                                int x = kaillera_mlv.Find((LPARAM)name);
+                                                while(*++loca!= 0){}*loca++ = 0;
+                                                kaillera_mlv.AddRow(name, (LPARAM)name);
+                                                char * host = loca;
+                                                while(*++loca!=0){}*loca++ = ':';
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 6, x);
+                                                char * users = loca;
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 3, x);
+                                                char * games = loca;
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 4, x);
+                                                char * version = loca;
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(version, 5, x);
+                                                char * location = loca;
+                                                while(*++loca!=0){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 1, x);
+                                                char xxxj[20] = "1000ms+";
+                                                if (ping != -1)
+                                                        wsprintf(xxxj, "%ims", ping);
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 2, x);
+                                                total++;
+                                        }
+                                }
+                        }
+                        SetWindowText(kaillera_mslref,LNG(MSL_CLEANING_UP));
+                        while (plist.size() > 0){
+                                PingSocket::step(10);
+                                DWORD ti = GetTickCount();
+                                for (int _x = 0; _x < plist.size(); _x++) {
+                                        PingSocket * ps = plist.get(_x);
+                                        if (ps != 0 && ps->limit != 0 && ps->is_done(ti)){
+                                                int ping = ps->return_ping();
+                                                char * loca = ps->ptr;
+                                                plist.remove(ps);
+                                                delete ps;
+                                                _x--;
+                                                char * name = loca;
+                                                int x = kaillera_mlv.Find((LPARAM)name);
+                                                while(*++loca!= 0){}*loca++ = 0;
+                                                kaillera_mlv.AddRow(name, (LPARAM)name);
+                                                char * host = loca;
+                                                while(*++loca!=0){}*loca++ = ':';
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 6, x);
+                                                char * users = loca;
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 3, x);
+                                                char * games = loca;
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 4, x);
+                                                char * version = loca;
+                                                while(*++loca!=';'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(version, 5, x);
+                                                char * location = loca;
+                                                while(*++loca!=0){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 1, x);
+                                                char xxxj[20] = "1000ms+";
+                                                if (ping != -1)
+                                                        wsprintf(xxxj, "%ims", ping);
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 2, x);
+                                                total++;
+                                        }
+                                }
+                        }
+                        kaillera_mslistReSort();
+                        wsprintf(xxx.xxz, LNG(MSL_SERVERS_FOUND), total);
+                        SetWindowText(kaillera_mslref,xxx.xxz);
+                }  else SetWindowText(kaillera_mslref,LNG(MSL_ERROR_REFRESHING));
+        }
+        void run() {
+                runn = running = true;
+                __try {
+                        SetWindowText(kaillera_mslref, LNG(MSL_DOWNLOADING));
+                        SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_STOP));
+                        kaillera_mlv.DeleteAllRows();
+                        memset(buffer, 0, 0x7FFF);
+                        refresh_servers();
+                }
+                __except (n02ExceptionFilterFunction(GetExceptionInformation())) {
+                        running = false;
+                        eend();
+                        return;
+                }
+                running = false;
+                SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_REFRESH));
+        }
+        void start(){
+                //yield();yield();yield();yield();yield();yield();yield();yield();
+
+                if (!running)
+                        create();
+                else eend();
+        }
+        void eend(){
+                if (running)
+                        destroy();
+                running = runn = false;
+                while (plist.size() > 0){
+                        delete plist.get(0);
+                        plist.removei(0);
+                }
+                SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_REFRESH));
+        }
+} refresher_thread;
+class WGListRefresher: public nThread {
+public:
+        bool running;
+        bool runn;
+        char buffer[0x8000];
+        slist<PingSocket*, KAILLERA_PING_SIMULT> plist;
+        void refresh_wgames(){
+                n02_TRACE();
+                int l = DownloadListToBuffer(buffer, 0x8000, "http://kaillerareborn.2manygames.fr/game_list.php");//DownloadListToBuffer(buffer, 0x8000, "http://kaillera.com/raw_server_list2.php?version=0.9&wg=1");
+                runn = l > 200;
+                if (runn) {
+                        char * ptr = strstr(buffer, "\r\n\r\n");
+                        if (ptr == NULL)
+                                return;
+                        ptr += 4;
+                        int total=0;
+                        if(ptr==NULL){
+                                return;
+                        }
+                        char * end = strstr(ptr, "\n");
+                                ptrdiff_t len = end - ptr;
+                        runn = len > 50;
+                        union {
+                                char xxz[201];
+                                struct {
+                                        char stt;
+                                        char statusb[200];
+                                }xx;
+                        }xxx;
+                        struct {
+                                unsigned z :2;
+                        } xx;
+                        xx.z = 50;
+                        SetWindowText(kaillera_mslref,LNG(MSL_PINGING));
+                        while (runn && (ptr + 30 < end || plist.size() > 0)) { 
+                                char * name;
+                                if (ptr + 30 < end && plist.size() < KAILLERA_PING_SIMULT && plist.size() < total + 1){
+                                        name = ptr;
+                                        while(*++ptr!='|'){}*ptr++ = 0;
+                                        char * host = ptr;
+                                        while(*++ptr!=':'){}*ptr++ = 0;
+                                        int port = atoi(ptr);
+                                        while(*++ptr!='|'){}
+                                        while(*++ptr!='|'){}
+                                        while(*++ptr!='|'){}
+                                        while(*++ptr!='|'){}
+                                        while(*++ptr!='|'){}
+                                        while(*++ptr!='|'){}
+                                        *ptr++ = 0;
+                                        if (inet_addr(host)==-1)
+                                                continue;
+                                        //      10.0.0.0/8
+                                        if (strncmp("10.", host, 3)==0)
+                                                continue;
+                                        //      192.168.0.0/16
+                                        if (strncmp("192.168.", host, 8)==0)
+                                                continue;
+                                        //  172.16.0.0/12
+                                        if (strncmp("172.", host, 4)==0){
+                                                int secoct = atoi(host+4);
+                                                if (secoct >= 16 && secoct <=31)
+                                                        continue;
+                                        }
+                                        if (strncmp("127.", host, 4)==0)
+                                                continue;
+                                        PingSocket * ps = new PingSocket;
+                                        ps->ping_host(host, port);
+                                        ps->ptr = name;
+                                        plist.add(ps);
+                                        continue;
+                                }
+                                wsprintf(xxx.xxz, LNG(MSL_PINGED_GAMES), total);
+                                SetWindowText(kaillera_mslref, xxx.xxz);
+                                PingSocket::step(10);
+                                DWORD ti = GetTickCount();
+                                for (int _x = 0; _x < plist.size(); _x++) {
+                                        PingSocket * ps = plist.get(_x);
+                                        if (ps != 0 && ps->limit != 0 && ps->is_done(ti)){
+                                                int ping = ps->return_ping();
+                                                char * loca = ps->ptr;
+                                                plist.remove(ps);
+                                                delete ps;
+                                                _x--;
+                                                if (ping == -1)
+                                                        continue;
+                                                name = loca;
+                                                int x = kaillera_mlv.Find((LPARAM)name);
+                                                while(*++loca!= 0){}*loca++ = 0;
+                                                kaillera_mlv.AddRow(name, (LPARAM)name);
+                                                char * host = loca;
+                                                while(*++loca!=0){}*loca++ = ':';
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 7, x);
+                                                char * users = loca; // username
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 2, x);
+                                                char * games = loca; // emu name
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 1, x);
+                                                char * version = loca; // waiting players
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(version, 4, x);
+                                                char * location = loca; //server name
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 5, x);
+                                                location = loca; //server location
+                                                while(*++loca!=0){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 6, x);
+                                                char xxxj[20];
+                                                wsprintf(xxxj, "%ims", ping);
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
+                                                total++;
+                                        }
+                                }
+                        }
+                        SetWindowText(kaillera_mslref,LNG(MSL_CLEANING_UP));
+                        while (plist.size() > 0){
+                                PingSocket::step(10);
+                                DWORD ti = GetTickCount();
+                                for (int _x = 0; _x < plist.size(); _x++) {
+                                        PingSocket * ps = plist.get(_x);
+                                        if (ps != 0 && ps->limit != 0 && ps->is_done(ti)){
+                                                int ping = ps->return_ping();
+                                                char * loca = ps->ptr;
+                                                plist.remove(ps);
+                                                delete ps;
+                                                _x--;
+                                                if (ping == -1)
+                                                        continue;
+                                                char * name = loca;
+                                                int x = kaillera_mlv.Find((LPARAM)name);
+                                                while(*++loca!= 0){}*loca++ = 0;
+                                                kaillera_mlv.AddRow(name, (LPARAM)name);
+                                                char * host = loca;
+                                                while(*++loca!=0){}*loca++ = ':';
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 7, x);
+                                                char * users = loca; // username
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 2, x);
+                                                char * games = loca; // emu name
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 1, x);
+                                                char * version = loca; // waiting players
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(version, 4, x);
+                                                char * location = loca; //server name
+                                                while(*++loca!='|'){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 5, x);
+                                                location = loca; //server location
+                                                while(*++loca!=0){}*loca++ = 0;
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 6, x);
+                                                char xxxj[20];
+                                                wsprintf(xxxj, "%ims", ping);
+                                                x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
+                                                total++;
+                                        }
+                                        
+                                }
+                                
+                        }
+                        
+                        wsprintf(xxx.xxz, LNG(MSL_GAMES_FOUND), total);
+                        SetWindowText(kaillera_mslref,xxx.xxz);
+                } else SetWindowText(kaillera_mslref,LNG(MSL_ERROR_REFRESHING));
+                
+        }
+        
+        
+        void run() {
+                runn = running = true;
+                __try {
+                        SetWindowText(kaillera_mslref, LNG(MSL_DOWNLOADING));
+                        SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_STOP));
+                        kaillera_mlv.DeleteAllRows();
+                        memset(buffer, 0, 0x7FFF);
+                        refresh_wgames();
+                }
+                __except (n02ExceptionFilterFunction(GetExceptionInformation())) {
+                        running = false;
+                        eend();
+                        return;
+                }
+                running = false;
+                SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_REFRESH));
+        }
+        
+        void start(){
+                if (!running)
+                        create();
+                else eend();
+        }
+        
+        void eend(){
+                if (running)
+                        destroy();
+
+                running = runn = false;
+                
+
+                while (plist.size() > 0){
+                        delete plist.get(0);
+                        plist.removei(0);
+                }
+                SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_REFRESH));
+        }
+        
+        
+} wg_refresher_thread;
+
+//////////////////////////////////////////////////
+void KLSListAdd(char * name, char * host);
+
+
+void kaillera_mldlg_connect_selected(HWND hDlg){
+        refresher_thread.runn = false;
+        int selected = kaillera_mlv.SelectedRow();
+        if (selected >= 0) {
+                char * buf = (char*)kaillera_mlv.RowNo(selected);
+                char * name = buf;
+                while(*++buf!= 0){}*buf++ = 0;
+                char * host = buf;
+                while(*++buf!= 0){}*buf++ = 0;
+                char * users = buf;
+                while(*++buf!= 0){}*buf++ = 0;
+                char * games = buf;
+                while(*++buf!=0){}*buf++ = 0;
+                char * version = buf;
+                while(*++buf!=0){}*buf++ = 0;
+                char * location = buf;
+                while(*++buf!=0){}*buf++ = 0;
+                char * tx = host;
+                int port = 27888;
+                while (*++host != ':' && *host != 0);
+                if (*host == ':') {
+                        *host++ = 0x00;
+                        port = atoi(host);
+                        port = port==0?27888:port;
+                }
+                host = tx;
+                ConnectToServer(host, port, hDlg, name);
+        }
+}
+
+
+void kaillera_wgdlg_connect_selected(HWND hDlg){
+        refresher_thread.runn = false;
+        int selected = kaillera_mlv.SelectedRow();
+        if (selected >= 0) {
+                char * buf = (char*)kaillera_mlv.RowNo(selected);
+                char * name = buf;
+                while(*++buf!= 0){}*buf++ = 0;
+                char * host = buf;
+                while(*++buf!= 0){}*buf++ = 0;
+                char * users = buf;
+                while(*++buf!= 0){}*buf++ = 0;
+                char * games = buf;
+                while(*++buf!=0){}*buf++ = 0;
+                char * version = buf;
+                while(*++buf!=0){}*buf++ = 0;
+                char * location = buf;
+                while(*++buf!=0){}*buf++ = 0;
+                char * tx = host;
+                int port = 27888;
+                while (*++host != ':' && *host != 0);
+                if (*host == ':') {
+                        *host++ = 0x00;
+                        port = atoi(host);
+                        port = port==0?27888:port;
+                }
+                host = tx;
+                ConnectToServer(host, port, hDlg, host);
+        }
+}
+
+LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        switch (uMsg) {
+                case WM_INITDIALOG:
+                        kaillera_mslref = hDlg;
+                        refresher_thread.running = false;
+                        SetWindowText(hDlg, LNG(MSL_MASTER_WAITING));
+                        kaillera_mlv.handle = GetDlgItem(hDlg, LV_SLIST);
+                        kaillera_mlv.initialize();
+                        for (int i = 0; i < kMslistMaxColumns; i++) {
+                                kaillera_mslistColumnTypes[i] = 1;
+                                kaillera_mslistColumnOrder[i] = 0;
+                        }
+                        kaillera_mlv.AddColumn(LNG(COL_SERVER_NAME), 150);
+                        kaillera_mlv.AddColumn(LNG(COL_EMULATOR), 120);
+                        kaillera_mlv.AddColumn(LNG(COL_USER), 70);
+                        kaillera_mlv.AddColumn(LNG(COL_PING), 45);
+                        kaillera_mlv.AddColumn(LNG(COL_WAITING), 45);
+                        kaillera_mlv.AddColumn(LNG(COL_SERVER), 120);
+                        kaillera_mlv.AddColumn(LNG(COL_LOCATION), 80);
+                        kaillera_mlv.AddColumn(LNG(COL_IP), 90);
+                        kaillera_mlv.FullRowSelect();
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+	kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+                        kaillera_mslistColumn = 3;
+                        kaillera_mslistColumnTypes[3] = 0;
+                        kaillera_mslistColumnOrder[3] = 1;
+
+                        ShowWindow(GetDlgItem(hDlg, BTN_WGAMES), SW_HIDE);
+                        ShowWindow(GetDlgItem(hDlg, BTN_ADD), SW_HIDE);
+
+                        wg_refresher_thread.start();
+
+                        break;
+                case WM_CLOSE:
+                        wg_refresher_thread.eend();
+                        EndDialog(hDlg, 0);
+                        break;
+                case WM_NOTIFY:
+                        switch (((NMHDR*)lParam)->code) {
+                                case NM_DBLCLK:
+                                if(((NMHDR*)lParam)->hwndFrom == kaillera_mlv.handle){
+                                        kaillera_wgdlg_connect_selected(hDlg);
+                                        return TRUE;
+                                }
+                                break;
+                        }
+                        if(((LPNMHDR)lParam)->code==LVN_COLUMNCLICK && ((LPNMHDR)lParam)->hwndFrom==kaillera_mlv.handle){
+                                kaillera_mslistSort(((NMLISTVIEW*)lParam)->iSubItem);
+                        }
+                        break;
+                case WM_COMMAND:
+                        if (LOWORD(wParam)==BTN_CONNECT){
+                                kaillera_mldlg_connect_selected(hDlg);
+                        } else if (LOWORD(wParam)==BTN_REFRESH) {
+                                wg_refresher_thread.start();
+                        } else if (LOWORD(wParam)==BTN_CLOSE) {
+                                EndDialog(hDlg, 0);
+                        }
+                        break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                SetWindowText(hDlg, LNG(MSL_MASTER_WAITING));
+                break;
+        };
+        return 0;
+}
+
+LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        static bool xxx = false;
+        switch (uMsg) {
+                case WM_INITDIALOG:
+                        xxx = false;
+                        kaillera_mslref = hDlg;
+                        refresher_thread.running = false;
+                        SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
+                        kaillera_mlv.handle = GetDlgItem(hDlg, LV_SLIST);
+                        kaillera_mlv.initialize();
+                        for (int i = 0; i < kMslistMaxColumns; i++) {
+                                kaillera_mslistColumnTypes[i] = 1;
+                                kaillera_mslistColumnOrder[i] = 0;
+                        }
+                        kaillera_mlv.AddColumn(LNG(COL_SERVER_NAME), 180);
+                        kaillera_mlv.AddColumn(LNG(COL_LOCATION), 140);
+                        kaillera_mlv.AddColumn(LNG(COL_PING), 60);
+                        kaillera_mlv.AddColumn(LNG(COL_USERS), 50);
+                        kaillera_mlv.AddColumn(LNG(COL_GAME), 50);
+                        kaillera_mlv.AddColumn(LNG(COL_VER), 40);
+                        kaillera_mlv.AddColumn(LNG(COL_IP), 120);
+                        kaillera_mlv.FullRowSelect();
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                        kaillera_mslistColumn = 2;
+                        kaillera_mslistColumnTypes[2] = 0;
+                        kaillera_mslistColumnOrder[2] = 1;
+                        refresher_thread.start();
+                        break;
+                case WM_CLOSE:
+                        {
+                                refresher_thread.eend();
+                                HWND par = GetParent(hDlg);
+                                EndDialog(hDlg, 0);
+                                if (xxx) {
+                                        xxx = false;
+                                        DialogBox(hx, (LPCTSTR)KAILLERA_MLIST, hDlg, (DLGPROC)MasterWGLDialogProc);
+                                }
+                        }
+                        break;
+                case WM_NOTIFY:
+                        switch (((NMHDR*)lParam)->code) {
+                                case NM_DBLCLK:
+                                if(((NMHDR*)lParam)->hwndFrom == kaillera_mlv.handle){
+                                        kaillera_mldlg_connect_selected(hDlg);
+                                        return TRUE;                                    
+                                }
+                                break;
+                        }
+                        if(((LPNMHDR)lParam)->code==LVN_COLUMNCLICK && ((LPNMHDR)lParam)->hwndFrom==kaillera_mlv.handle){
+                                kaillera_mslistSort(((NMLISTVIEW*)lParam)->iSubItem);
+                        }
+                        break;
+                case WM_COMMAND:
+                        if (LOWORD(wParam)==BTN_CONNECT){
+                                kaillera_mldlg_connect_selected(hDlg);
+                        } else if (LOWORD(wParam)==BTN_REFRESH) {
+                                refresher_thread.start();
+                        } else if (LOWORD(wParam)==BTN_CLOSE) {
+                                EndDialog(hDlg, 0);
+                        } else if (LOWORD(wParam)==BTN_ADD) {
+                                int selected = kaillera_mlv.SelectedRow();
+                                if (selected >= 0) {
+                                        char * buf = (char*)kaillera_mlv.RowNo(selected);
+                                        char * name = buf;
+                                        while(*++buf!= 0){}*buf++ = 0;
+                                        char * host = buf;
+                                        while(*++buf!= 0){}*buf++ = 0;
+                                        char * users = buf;
+                                        while(*++buf!= 0){}*buf++ = 0;
+                                        char * games = buf;
+                                        while(*++buf!=0){}*buf++ = 0;
+                                        char * version = buf;
+                                        while(*++buf!=0){}*buf++ = 0;
+                                        char * location = buf;
+                                        while(*++buf!=0){}*buf++ = 0;
+                                        KLSListAdd(name, host);
+                                }
+                        } else if (LOWORD(wParam)==BTN_WGAMES) {
+                                xxx = true;
+                                SendMessage(hDlg, WM_CLOSE,0,0);
+                        }
+                        break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
+                break;
+        };
+        return 0;
+}
+
+
+extern HWND p2p_ui_ss_dlg;
+
+void p2p_wgdlg_connect_selected(HWND hDlg){
+        refresher_thread.runn = false;
+        int selected = kaillera_mlv.SelectedRow();
+        if (selected >= 0) {
+                char host[128];
+                char code[64];
+                host[0] = 0;
+                code[0] = 0;
+                kaillera_mlv.CheckRow(host, sizeof(host), 4, selected);
+                kaillera_mlv.CheckRow(code, sizeof(code), 5, selected);
+                ShowWindow(kaillera_mslref, SW_HIDE);
+                if (code[0] != 0) {
+                        InitializeP2PSubsystemWithJoinCode(hDlg, code, host);
+                } else {
+                        SetWindowText(GetDlgItem(p2p_ui_ss_dlg, IDC_IP), host);
+                        InitializeP2PSubsystem(hDlg, false);
+                }
+                ShowWindow(kaillera_mslref, SW_SHOW);
+        }
+}
+
+
+
+
+        
+
+class p2p_WGListRefresher: public nThread {
+public:
+        bool running;
+        bool runn;
+        char buffer[0x8000];
+        
+        slist<PingSocket*, KAILLERA_PING_SIMULT> plist;
+        
+        void refresh_p2p_wgames() {
+                n02_TRACE();
+
+                int l = DownloadListToBuffer(buffer, 0x8000, "http://kaillerareborn.2manygames.fr:27887/plist.txt");//DownloadListToBuffer(buffer, 0x8000, "http://0746.movsq.net/plist.txt");
+                
+                runn = l > 7;
+                
+                
+                if (runn) {
+                        char * ptr = strstr(buffer, "\r\n\r\n");
+                        if (ptr == NULL)
+                                return;
+                        ptr += 4;
+                        //MessageBox(0, ptr, buffer, 0);
+                        int total=0;
+                        if(ptr==NULL){
+                                return;
+                        }
+                        char * end = strstr(ptr, "\n");
+                        SetWindowText(kaillera_mslref, LNG(MSL_PARSING));
+                                ptrdiff_t len = end - ptr;
+                        runn = len > 10;
+                        if (!runn)
+                                SetWindowText(kaillera_mslref,LNG(MSL_NO_GAMES));
+                        if (runn) {
+                                union {
+                                        char xxz[201];
+                                        struct {
+                                                char stt;
+                                                char statusb[200];
+                                        }xx;
+                                }xxx;
+                                struct {
+                                        unsigned z :2;
+                                } xx;
+                                xx.z = 50;
+                                SetWindowText(kaillera_mslref,LNG(MSL_PINGING));
+                                while (runn && (ptr < end || plist.size() > 0)) { 
+                                        char * name;
+                                        if (ptr + 30 < end && plist.size() < KAILLERA_PING_SIMULT && plist.size() < total + 1){
+                                                name = ptr;
+                                                //Repeat1-10|FakeEmulator 1.0|civilian|60.242.194.154:27886
+                                                while(*++ptr!='|'){}*ptr++ = 0; // gn
+                                                while(*++ptr!='|'){}*ptr++ = 0; // en
+                                                while(*++ptr!='|'){}*ptr++ = 0; // un
+                                                char * host = ptr;
+                                                while(*++ptr!=':'){}*ptr++ = 0;
+                                                int port = atoi(ptr);
+                                                while(*++ptr!='|'){}*ptr++ = 0;
+                                                if (inet_addr(host)==-1)
+                                                        continue;
+                                                //      10.0.0.0/8
+                                                if (strncmp("10.", host, 3)==0)
+                                                        continue;
+                                                //      192.168.0.0/16
+                                                if (strncmp("192.168.", host, 8)==0)
+                                                        continue;
+                                                //  172.16.0.0/12
+                                                if (strncmp("172.", host, 4)==0){
+                                                        int secoct = atoi(host+4);
+                                                        if (secoct >= 16 && secoct <=31)
+                                                                continue;
+                                                }
+                                                if (strncmp("127.", host, 4)==0)
+                                                        continue;
+                                                
+                                                //MessageBox(0,name,ptr,0);
+                                                
+                                                PingSocket * ps = new PingSocket;
+                                                ps->ping_host(host, port, "\x00PINGRQ", 8);
+                                                ps->ptr = name;
+                                                plist.add(ps);
+                                                
+                                                
+                                                continue;
+                                        }
+
+                                        wsprintf(xxx.xxz, LNG(MSL_PINGED_GAMES), total);
+                                        SetWindowText(kaillera_mslref, xxx.xxz);
+                                        
+                                        PingSocket::step(10);
+                                        
+                                        DWORD ti = GetTickCount();
+                                        
+                                        for (int _x = 0; _x < plist.size(); _x++) {
+                                                
+                                                PingSocket * ps = plist.get(_x);
+                                                
+                                                if (ps != 0 && ps->limit != 0 && ps->is_done(ti)){
+                                                        int ping = ps->return_ping();
+                                                        char * loca = ps->ptr;
+                                                        plist.remove(ps);
+                                                        delete ps;
+                                                                _x--;
+                                                                if (ping == -1) {
+                                                                        name = loca;
+
+                                                                        while(*++loca!= 0){}*loca++ = 0;
+
+                                                                        char * games = loca; // emu name
+                                                                        while(*++loca!=0){}*loca++ = 0;
+                                                                        char code_buf[64];
+                                                                        code_buf[0] = 0;
+                                                                        p2p_appcode_split_inplace(games, code_buf, sizeof(code_buf));
+
+                                                                        char * users = loca; // username
+                                                                        while(*++loca!=0){}*loca++ = 0;
+
+                                                                        char * host = loca;
+                                                                        while(*++loca!=0){}*loca++ = ':';
+
+                                                                        if (code_buf[0] == 0)
+                                                                                continue;
+
+                                                                        kaillera_mlv.AddRow(name, (LPARAM)name);
+                                                                        int x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 1, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 2, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 4, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(code_buf, 5, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow("?", 3, x);
+
+                                                                        total++;
+                                                                        continue;
+                                                                }
+
+                                                                name = loca;
+                                                                int x = kaillera_mlv.Find((LPARAM)name);
+
+                                                                while(*++loca!= 0){}*loca++ = 0;
+                                                                kaillera_mlv.AddRow(name, (LPARAM)name);
+
+                                                        char * games = loca; // emu name
+                                                        while(*++loca!=0){}*loca++ = 0;
+                                                        char code_buf[64];
+                                                        code_buf[0] = 0;
+                                                        p2p_appcode_split_inplace(games, code_buf, sizeof(code_buf));
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 1, x);
+                                                        
+                                                        char * users = loca; // username
+                                                        while(*++loca!=0){}*loca++ = 0;
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 2, x);
+                                                        
+                                                        char * host = loca;
+                                                        while(*++loca!=0){}*loca++ = ':';
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 4, x);
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(code_buf, 5, x);
+                                                        
+                                                        char xxxj[20];
+                                                        wsprintf(xxxj, "%ims", ping);
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
+                                                        
+                                                        total++;
+                                                        
+                                                }
+                                        }
+                                }
+                                SetWindowText(kaillera_mslref,LNG(MSL_CLEANING_UP));
+                                while (plist.size() > 0){
+                                        PingSocket::step(10);
+                                        DWORD ti = GetTickCount();
+                                        for (int _x = 0; _x < plist.size(); _x++) {
+                                                PingSocket * ps = plist.get(_x);
+                                                        if (ps != 0 && ps->limit != 0 && ps->is_done(ti)){
+                                                                int ping = ps->return_ping();
+                                                                char * loca = ps->ptr;
+                                                                plist.remove(ps);
+                                                                delete ps;
+                                                                _x--;
+                                                                if (ping == -1) {
+                                                                        char * name = loca;
+                                                                        while(*++loca!= 0){}*loca++ = 0;
+                                                                        char * games = loca; // emu name
+                                                                        while(*++loca!=0){}*loca++ = 0;
+                                                                        char code_buf[64];
+                                                                        code_buf[0] = 0;
+                                                                        p2p_appcode_split_inplace(games, code_buf, sizeof(code_buf));
+                                                                        char * users = loca; // username
+                                                                        while(*++loca!=0){}*loca++ = 0;
+                                                                        char * host = loca;
+                                                                        while(*++loca!=0){}*loca++ = ':';
+                                                                        if (code_buf[0] == 0)
+                                                                                continue;
+                                                                        kaillera_mlv.AddRow(name, (LPARAM)name);
+                                                                        int x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 1, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 2, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 4, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(code_buf, 5, x);
+                                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow("?", 3, x);
+                                                                        total++;
+                                                                        continue;
+                                                                }
+                                                                char * name = loca;
+                                                                int x = kaillera_mlv.Find((LPARAM)name);
+                                                        while(*++loca!= 0){}*loca++ = 0;
+                                                        kaillera_mlv.AddRow(name, (LPARAM)name);
+                                                        char * games = loca; // emu name
+                                                        while(*++loca!=0){}*loca++ = 0;
+                                                        char code_buf[64];
+                                                        code_buf[0] = 0;
+                                                        p2p_appcode_split_inplace(games, code_buf, sizeof(code_buf));
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(games, 1, x);
+                                                        char * users = loca; // username
+                                                        while(*++loca!=0){}*loca++ = 0;
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(users, 2, x);
+                                                        char * host = loca;
+                                                        while(*++loca!=0){}*loca++ = ':';
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 4, x);
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(code_buf, 5, x);
+                                                        char xxxj[20];
+                                                        wsprintf(xxxj, "%ims", ping);
+                                                        x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
+                                                        total++;
+                                                }
+                                        }
+                                }
+                                wsprintf(xxx.xxz, LNG(MSL_WAITING_GAMES_FOUND), total);
+                                SetWindowText(kaillera_mslref,xxx.xxz);
+                        }
+                }
+        }
+        
+        
+        void run() {
+
+                runn = running = true;
+
+                __try {
+
+                        SetWindowText(kaillera_mslref, LNG(MSL_DOWNLOADING));
+
+                        SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_STOP));
+                        kaillera_mlv.DeleteAllRows();
+                        memset(buffer, 0, 0x7FFF);
+                        refresh_p2p_wgames();
+                }
+                __except (n02ExceptionFilterFunction(GetExceptionInformation())) {
+                        running = false;
+                        eend();
+                        return;
+                }
+                running = false;
+                SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_REFRESH));
+        }
+        
+        void start(){
+                if (!running)
+                        create();
+                else eend();
+        }
+        
+        void eend(){
+                if (running)
+                        destroy();
+
+                running = runn = false;
+                
+
+                while (plist.size() > 0){
+                        delete plist.get(0);
+                        plist.removei(0);
+                }
+                SetDlgItemText(kaillera_mslref, BTN_REFRESH, LNG(MSL_REFRESH));
+        }
+        
+} p2p_wg_refresher_thread;
+
+
+
+LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+        switch (uMsg) {
+                case WM_INITDIALOG:
+                        kaillera_mslref = hDlg;
+                        p2p_wg_refresher_thread.running = false;
+                        SetWindowText(hDlg, LNG(MSL_WAITING_GAMES));
+                        
+                        kaillera_mlv.handle = GetDlgItem(hDlg, LV_SLIST);
+                        kaillera_mlv.initialize();
+                        for (int i = 0; i < kMslistMaxColumns; i++) {
+                                kaillera_mslistColumnTypes[i] = 1;
+                                kaillera_mslistColumnOrder[i] = 0;
+                        }
+                        kaillera_mlv.AddColumn(LNG(COL_GAME), 290);
+                        kaillera_mlv.AddColumn(LNG(COL_EMULATOR), 190);
+                        kaillera_mlv.AddColumn(LNG(COL_USER), 99);
+                        kaillera_mlv.AddColumn(LNG(COL_PING), 50);
+                        kaillera_mlv.AddColumn(LNG(COL_HOST), 0);
+                        kaillera_mlv.AddColumn(LNG(COL_CODE), 0);
+                        kaillera_mlv.FullRowSelect();
+                        /* Apply language to all controls including ListView column headers.
+                           Must be called AFTER columns are created so headers can be updated. */
+                        ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                        kaillera_mslistColumn = 3;
+                        kaillera_mslistColumnTypes[3] = 0;
+                        kaillera_mslistColumnOrder[3] = 1;
+
+                        ShowWindow(GetDlgItem(hDlg, BTN_ADD), SW_HIDE);
+                        ShowWindow(GetDlgItem(hDlg, BTN_WGAMES), SW_HIDE);
+
+                        p2p_wg_refresher_thread.start();
+
+                        break;
+                case WM_CLOSE:
+                        p2p_wg_refresher_thread.eend();
+                        EndDialog(hDlg, 0);
+                        break;
+                case WM_NOTIFY:
+                        switch (((NMHDR*)lParam)->code) {
+                                case NM_DBLCLK:
+                                if(((NMHDR*)lParam)->hwndFrom == kaillera_mlv.handle){
+                                        p2p_wgdlg_connect_selected(hDlg);
+                                        return TRUE;                                    
+                                }
+                                break;
+                        }
+                        if(((LPNMHDR)lParam)->code==LVN_COLUMNCLICK && ((LPNMHDR)lParam)->hwndFrom==kaillera_mlv.handle){
+                                kaillera_mslistSort(((NMLISTVIEW*)lParam)->iSubItem);
+                        }
+                        break;
+                case WM_COMMAND:
+                        if (LOWORD(wParam)==BTN_CONNECT){
+                                p2p_wgdlg_connect_selected(hDlg);
+                        } else if (LOWORD(wParam)==BTN_REFRESH) {
+                                p2p_wg_refresher_thread.start();
+                        } else if (LOWORD(wParam)==BTN_CLOSE) {
+                                EndDialog(hDlg, 0);
+                        }
+                        break;
+        case WM_LANG_CHANGED:
+                ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
+                SetWindowText(hDlg, LNG(MSL_WAITING_GAMES));
+                break;
+        };
+        return 0;
+}
+
+
+void p2p_ShowWaitingGamesList(){
+        DialogBox(hx, (LPCTSTR)KAILLERA_MLIST, p2p_ui_ss_dlg, (DLGPROC)p2p_MasterSLDialogProc);
+}
