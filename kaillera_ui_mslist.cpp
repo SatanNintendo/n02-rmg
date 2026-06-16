@@ -762,6 +762,13 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         kaillera_mslref = hDlg;
                         refresher_thread.running = false;
                         SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
+                        /* DEBUG: Show what LNG(COL_SERVER_NAME) returns */
+                        {
+                                char dbg[256];
+                                wsprintfA(dbg, "COL_SERVER_NAME=[%s]\nLangGetCount=%d\nLangFile=[%s]\nLangName=[%s]",
+                                        LNG(COL_SERVER_NAME), LangGetCount(), LangGetFile(), LangGetName());
+                                MessageBoxA(hDlg, dbg, "LANG DEBUG", MB_OK);
+                        }
                         kaillera_mlv.handle = GetDlgItem(hDlg, LV_SLIST);
                         kaillera_mlv.initialize();
                         for (int i = 0; i < kMslistMaxColumns; i++) {
