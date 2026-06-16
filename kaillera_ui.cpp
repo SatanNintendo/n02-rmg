@@ -1629,6 +1629,15 @@ static INT_PTR CALLBACK OptionsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                                 return (INT_PTR)TRUE;
                         break;
+                case WM_DRAWITEM:
+                        /* Owner-draw push buttons (dark mode). */
+                        if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                                return (INT_PTR)TRUE;
+                        break;
+                case WM_THEME_CHANGED:
+                        /* Live theme toggle — re-apply dark title bar, control
+                         * styles and repaint. */
+                        return (INT_PTR)Theme_HandleThemeChanged(hDlg);
         }
         return (INT_PTR)FALSE;
 }
@@ -2192,6 +2201,15 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
                 };
                 return 0;
 }
@@ -2343,6 +2361,14 @@ LRESULT CALLBACK KLSListModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
         } else if (uMsg==WM_ERASEBKGND){
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
+        } else if (uMsg==WM_DRAWITEM){
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+        } else if (uMsg==WM_THEME_CHANGED){
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         }
         return 0;
 }
@@ -2616,9 +2642,13 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         }
                         break;
                 case IDC_DARK_THEME:
+                        /* Theme_Toggle() broadcasts WM_THEME_CHANGED to all
+                         * open dialogs (including this one), which triggers
+                         * Theme_HandleThemeChanged() below — that re-applies
+                         * the dark title bar, control styles (owner-draw +
+                         * SetWindowTheme) and forces a repaint. No need to
+                         * invalidate / re-apply manually here. */
                         Theme_Toggle();
-                        InvalidateRect(hDlg, NULL, TRUE);
-                        Theme_ApplyToDialogChildren(hDlg);
                         break;
                 };
                 break;
@@ -2681,6 +2711,15 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. Triggered by Theme_Toggle() above. */
+                return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }
@@ -2735,6 +2774,15 @@ LRESULT CALLBACK CustomIPDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                                 return 1;
                         break;
+                case WM_DRAWITEM:
+                        /* Owner-draw push buttons (dark mode). */
+                        if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                                return TRUE;
+                        break;
+                case WM_THEME_CHANGED:
+                        /* Live theme toggle — re-apply dark title bar, control
+                         * styles and repaint. */
+                        return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }
@@ -2966,6 +3014,15 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
                 };
                 return 0;
 }

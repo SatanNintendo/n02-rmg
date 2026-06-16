@@ -89,7 +89,7 @@
       <SubSystem>Console</SubSystem>
       <OutputFile>$(TargetDir)kailleraclient.dll</OutputFile>
       <ImportLibrary>.\Release\kailleraclient.lib</ImportLibrary>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;ws2_32.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;ws2_32.lib;comctl32.lib;dwmapi.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,7 +129,7 @@
       <SubSystem>Console</SubSystem>
       <OutputFile>$(TargetDir)kailleraclient.dll</OutputFile>
       <ImportLibrary>.\Release\kailleraclient.lib</ImportLibrary>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;ws2_32.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;ws2_32.lib;comctl32.lib;dwmapi.lib;uxtheme.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

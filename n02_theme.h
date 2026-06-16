@@ -11,6 +11,11 @@
  *   2. Call Theme_OnDestroy(hDlg) in WM_DESTROY / before EndDialog
  *   3. Handle WM_CTLCOLOR* via Theme_HandleCtlColor(hDlg, hdc, childHwnd)
  *   4. Handle WM_ERASEBKGND via Theme_HandleEraseBkgnd(hDlg, hdc)
+ *   5. Handle WM_THEME_CHANGED (= WM_USER + 0x200) via Theme_HandleThemeChanged(hDlg)
+ *   6. Handle WM_DRAWITEM via Theme_DrawButton((LPDRAWITEMSTRUCT)lParam)
+ *      (only needed for dialogs containing push buttons)
+ *   7. For tab controls: in WM_NOTIFY call Theme_HandleTabNotify(lParam);
+ *      if it returns a non-negative value, return that value.
  *
  * Thread safety:
  *   - g_dark_mode is a simple bool read/written from the GUI thread only.
@@ -23,6 +28,12 @@
 /* WM_CTLCOLORCOMBOBOX (0x0133) is the same value as WM_CTLCOLOREDIT.
  * Do NOT use it in switch/case statements — combo boxes are handled
  * by WM_CTLCOLOREDIT (edit portion) and WM_CTLCOLORLISTBOX (drop-down). */
+
+/* Custom WM_USER message broadcast by Theme_NotifyChanged() so that every
+ * open dialog re-applies the current theme (dark title bar, control styles,
+ * owner-draw conversion, etc.). Dialog procs should handle it by calling
+ * Theme_HandleThemeChanged(hDlg). */
+#define WM_THEME_CHANGED (WM_USER + 0x200)
 
 /* Global dark mode flag. Default: false (light theme) */
 extern bool g_dark_mode;
@@ -38,7 +49,8 @@ void Theme_Shutdown();
 
 /* Apply theme styling to a dialog on WM_INITDIALOG.
  * Sets up dark mode colors for RichEdit, ListView, and other controls.
- * Must be called AFTER all controls have been created. */
+ * Must be called AFTER all controls have been created.
+ * Safe to call in light mode (no-op when g_dark_mode is false). */
 void Theme_OnInitDialog(HWND hDlg);
 
 /* Clean up per-dialog theme data. Call in WM_DESTROY or before EndDialog. */
@@ -64,9 +76,49 @@ void Theme_ApplyToListView(HWND hListView);
 /* Apply dark theme to a RichEdit control. */
 void Theme_ApplyToRichEdit(HWND hRichEdit);
 
-/* Apply dark theme to all child controls of a dialog recursively. */
+/* Apply theme styling (owner-draw conversion + SetWindowTheme) to all child
+ * controls of a dialog recursively. In dark mode push buttons are switched
+ * to BS_OWNERDRAW so the parent dialog can paint them via WM_DRAWITEM.
+ * In light mode previously-modified controls are reverted to defaults.
+ * Safe to call in either mode. */
 void Theme_ApplyToDialogChildren(HWND hDlg);
 
-/* Notify all top-level windows that theme has changed.
- * They should re-apply colors via Theme_OnInitDialog or similar. */
+/* Notify all top-level windows that theme has changed by broadcasting
+ * WM_THEME_CHANGED. Each dialog should re-apply colors via
+ * Theme_HandleThemeChanged(). */
 void Theme_NotifyChanged();
+
+/* Convenience handler for the WM_THEME_CHANGED (WM_USER + 0x200) message.
+ * Re-applies the dark title bar, re-runs Theme_ApplyToDialogChildren so
+ * control styles (owner-draw / SetWindowTheme) match the new mode, and
+ * forces a full repaint of the dialog. Returns 0 (the value the dialog
+ * proc should return). */
+LRESULT Theme_HandleThemeChanged(HWND hDlg);
+
+/* Owner-draw push button renderer for dark mode.
+ * Call from each dialog proc's WM_DRAWITEM handler:
+ *     case WM_DRAWITEM:
+ *         if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+ *             return TRUE;
+ *         break;
+ * Returns true if the item was a dark-mode push button and was drawn.
+ * Returns false otherwise (light mode, not a button, or wrong CtlType)
+ * so the dialog proc can fall through to default handling. */
+bool Theme_DrawButton(LPDRAWITEMSTRUCT dis);
+
+/* Tab-control NM_CUSTOMDRAW handler for dark mode.
+ * Call from each dialog proc's WM_NOTIFY handler that contains a
+ * SysTabControl32:
+ *     case WM_NOTIFY: {
+ *         LRESULT tabResult = Theme_HandleTabNotify(lParam);
+ *         if (tabResult >= 0) return tabResult;
+ *         ... existing WM_NOTIFY logic ...
+ *     }
+ * Returns:
+ *   - CDRF_NOTIFYITEMDRAW / CDRF_NEWFONT (>= 0) when it handled the
+ *     notification for a SysTabControl32 in dark mode — the dialog proc
+ *     should return this value.
+ *   - -1 when it did not handle the notification (light mode, not a tab
+ *     control, or uninteresting draw stage) — the dialog proc should
+ *     continue its own WM_NOTIFY processing. */
+LRESULT Theme_HandleTabNotify(LPARAM lParam);

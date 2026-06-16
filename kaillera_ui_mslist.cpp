@@ -744,6 +744,15 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_MASTER_WAITING));
@@ -854,6 +863,15 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
@@ -1243,6 +1261,15 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_WAITING_GAMES));

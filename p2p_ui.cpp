@@ -1548,6 +1548,15 @@ LRESULT CALLBACK ConnectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }
@@ -1731,6 +1740,14 @@ LRESULT CALLBACK P2PStoredUsersModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
         } else if (uMsg==WM_ERASEBKGND){
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
+        } else if (uMsg==WM_DRAWITEM){
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+        } else if (uMsg==WM_THEME_CHANGED){
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         }
         return 0;
 }
@@ -1942,6 +1959,11 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         break;
         case WM_NOTIFY:
                 {
+                /* Dark-mode tab control custom draw. Returns >= 0 if it
+                 * handled the notification (so we return that value). */
+                LRESULT tabResult = Theme_HandleTabNotify(lParam);
+                if (tabResult >= 0) return tabResult;
+
                 NMHDR* nParam;
                 nParam = (NMHDR*)lParam;
                 if (nParam->hwndFrom == p2p_ui_modeseltab && nParam->code == TCN_SELCHANGE){
@@ -1984,6 +2006,16 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles (incl. tab control SetWindowTheme + push button
+                 * owner-draw conversion) and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }

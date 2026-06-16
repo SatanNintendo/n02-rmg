@@ -691,7 +691,7 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                         /* Apply language to all controls including ListView column headers.
                            Must be called AFTER columns are created so headers can be updated. */
                         ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
-	kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
+        kaillera_mlv.SetColumnHeader(0, LNG(COL_SERVER_NAME));
                         kaillera_mslistColumn = 3;
                         kaillera_mslistColumnTypes[3] = 0;
                         kaillera_mslistColumnOrder[3] = 1;
@@ -748,6 +748,15 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }
@@ -856,6 +865,15 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }
@@ -1244,6 +1262,15 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }

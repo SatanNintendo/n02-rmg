@@ -644,6 +644,15 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
                         return 1;
                 break;
+        case WM_DRAWITEM:
+                /* Owner-draw push buttons (dark mode). */
+                if (Theme_DrawButton((LPDRAWITEMSTRUCT)lParam))
+                        return TRUE;
+                break;
+        case WM_THEME_CHANGED:
+                /* Live theme toggle — re-apply dark title bar, control
+                 * styles and repaint. */
+                return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
 }
