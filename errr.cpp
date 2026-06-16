@@ -159,7 +159,6 @@ LRESULT CALLBACK ErrorReporterDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LP
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {

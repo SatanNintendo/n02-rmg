@@ -1618,7 +1618,6 @@ static INT_PTR CALLBACK OptionsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                 case WM_CTLCOLORSTATIC:
                 case WM_CTLCOLORBTN:
                 case WM_CTLCOLORLISTBOX:
-                case WM_CTLCOLORCOMBOBOX:
                 case WM_CTLCOLORSCROLLBAR:
                 case WM_CTLCOLOREDIT:
                         {
@@ -2182,7 +2181,6 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {
@@ -2339,7 +2337,7 @@ LRESULT CALLBACK KLSListModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                         EndDialog(hDlg, 0);
         } else if (uMsg==WM_LANG_CHANGED){
                 ApplyDialogLanguage(hDlg, P2P_ITEM_EDIT);
-        } else if (uMsg==WM_CTLCOLORDLG || uMsg==WM_CTLCOLORSTATIC || uMsg==WM_CTLCOLORBTN || uMsg==WM_CTLCOLORLISTBOX || uMsg==WM_CTLCOLORCOMBOBOX || uMsg==WM_CTLCOLORSCROLLBAR || uMsg==WM_CTLCOLOREDIT){
+        } else if (uMsg==WM_CTLCOLORDLG || uMsg==WM_CTLCOLORSTATIC || uMsg==WM_CTLCOLORBTN || uMsg==WM_CTLCOLORLISTBOX || uMsg==WM_CTLCOLORSCROLLBAR || uMsg==WM_CTLCOLOREDIT){
                 HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
                 if (hBrush) return (LRESULT)hBrush;
         } else if (uMsg==WM_ERASEBKGND){
@@ -2672,7 +2670,6 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {
@@ -2727,7 +2724,6 @@ LRESULT CALLBACK CustomIPDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 case WM_CTLCOLORSTATIC:
                 case WM_CTLCOLORBTN:
                 case WM_CTLCOLORLISTBOX:
-                case WM_CTLCOLORCOMBOBOX:
                 case WM_CTLCOLORSCROLLBAR:
                 case WM_CTLCOLOREDIT:
                         {
@@ -2959,7 +2955,6 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {

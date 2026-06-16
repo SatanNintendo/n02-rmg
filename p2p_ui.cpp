@@ -1537,7 +1537,6 @@ LRESULT CALLBACK ConnectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {
@@ -1726,7 +1725,7 @@ LRESULT CALLBACK P2PStoredUsersModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
                         EndDialog(hDlg, 0);
         } else if (uMsg==WM_LANG_CHANGED){
                 ApplyDialogLanguage(hDlg, P2P_ITEM_EDIT);
-        } else if (uMsg==WM_CTLCOLORDLG || uMsg==WM_CTLCOLORSTATIC || uMsg==WM_CTLCOLORBTN || uMsg==WM_CTLCOLORLISTBOX || uMsg==WM_CTLCOLORCOMBOBOX || uMsg==WM_CTLCOLORSCROLLBAR || uMsg==WM_CTLCOLOREDIT){
+        } else if (uMsg==WM_CTLCOLORDLG || uMsg==WM_CTLCOLORSTATIC || uMsg==WM_CTLCOLORBTN || uMsg==WM_CTLCOLORLISTBOX || uMsg==WM_CTLCOLORSCROLLBAR || uMsg==WM_CTLCOLOREDIT){
                 HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
                 if (hBrush) return (LRESULT)hBrush;
         } else if (uMsg==WM_ERASEBKGND){
@@ -1974,7 +1973,6 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {

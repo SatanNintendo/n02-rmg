@@ -737,7 +737,6 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {
@@ -846,7 +845,6 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {
@@ -1235,7 +1233,6 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
         case WM_CTLCOLORSTATIC:
         case WM_CTLCOLORBTN:
         case WM_CTLCOLORLISTBOX:
-        case WM_CTLCOLORCOMBOBOX:
         case WM_CTLCOLORSCROLLBAR:
         case WM_CTLCOLOREDIT:
                 {
