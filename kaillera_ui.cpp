@@ -2752,28 +2752,8 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                         /* Apply language to all controls including ListView column headers.
                            Must be called AFTER columns are created so headers can be updated. */
                         ApplyDialogLanguage(hDlg, KAILLERA_SSDLG);
-                        /* DEBUG: Diagnostic - show what LNG(COL_SERVER_NAME) returns.
-                           This helps identify if the .lng file lookup is failing. */
-                        {
-                                char dbg[512];
-                                wsprintfA(dbg, "LNG(COL_SERVER_NAME) = [%s]\n"
-                                               "LangGetCount = %d\n"
-                                               "LangFile = [%s]\n"
-                                               "LangName = [%s]\n"
-                                               "\nIf the value above is 'Name' instead of\n"
-                                               "the translated text, the .lng file is not\n"
-                                               "being found or the key is missing.",
-                                        LNG(COL_SERVER_NAME), LangGetCount(),
-                                        LangGetFile(), LangGetName());
-                                MessageBoxA(hDlg, dbg, "Language Debug", MB_OK);
-                        }
-                        
-                                
-                                KLSListLoad();
-
-                                
-                                UpdateModeRadioButtons(hDlg);
-                                
+                        KLSListLoad();
+                        UpdateModeRadioButtons(hDlg);
                         }
                         break;
         case WM_CLOSE:
