@@ -151,6 +151,7 @@
     <ClCompile Include="stats.cpp" />
     <ClCompile Include="common\kaillera_lang.cpp" />
     <ClCompile Include="common\kaillera_lang_dlg.cpp" />
+    <ClCompile Include="n02_theme.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common\dlist.h" />
@@ -178,6 +179,7 @@
     <ClInclude Include="uihlp.h" />
     <ClInclude Include="common\kaillera_lang.h" />
     <ClInclude Include="common\kaillera_lang_dlg.h" />
+    <ClInclude Include="n02_theme.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="n02.rc" />

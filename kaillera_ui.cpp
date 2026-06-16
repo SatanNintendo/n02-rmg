@@ -12,6 +12,7 @@
 #include "common/nSettings.h"
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
+#include "n02_theme.h"
 
 static bool IsNonGameLobbyName(const char* name);
 
@@ -1596,6 +1597,7 @@ static INT_PTR CALLBACK OptionsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                 case WM_INITDIALOG:
                         ApplyDialogLanguage(hDlg, KAILLERA_OPTIONS);
                         LoadOptions(hDlg);
+                        Theme_OnInitDialog(hDlg);
                         return (INT_PTR)TRUE;
                 case WM_COMMAND:
                         switch (LOWORD(wParam)){
@@ -1611,6 +1613,22 @@ static INT_PTR CALLBACK OptionsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         break;
                 case WM_LANG_CHANGED:
                         ApplyDialogLanguage(hDlg, KAILLERA_OPTIONS);
+                        break;
+                case WM_CTLCOLORDLG:
+                case WM_CTLCOLORSTATIC:
+                case WM_CTLCOLORBTN:
+                case WM_CTLCOLORLISTBOX:
+                case WM_CTLCOLORCOMBOBOX:
+                case WM_CTLCOLORSCROLLBAR:
+                case WM_CTLCOLOREDIT:
+                        {
+                                HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                                if (hBrush) return (INT_PTR)hBrush;
+                        }
+                        break;
+                case WM_ERASEBKGND:
+                        if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                                return (INT_PTR)TRUE;
                         break;
         }
         return (INT_PTR)FALSE;
@@ -1743,6 +1761,7 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         InitializeKailleraDialogResizeLayout(hDlg);
                         LoadKailleraDialogLayout(hDlg);
 
+                        Theme_OnInitDialog(hDlg);
                         return 0;
                         
                 }
@@ -2159,6 +2178,22 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                                 kaillera_sdlg_show_users_list_menu(hDlg);
                         }
                         break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
                 };
                 return 0;
 }
@@ -2292,6 +2327,7 @@ LRESULT CALLBACK KLSListModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                 SetWindowText(GetDlgItem(hDlg, IDC_IP), KLSNST_temp.hostname);
                 if (lParam)     SetWindowText(hDlg, LNG(DLG_TITLE_EDIT));
                 else SetWindowText(hDlg, LNG(DLG_TITLE_ADD));
+                Theme_OnInitDialog(hDlg);
         } else if (uMsg==WM_CLOSE){
                 EndDialog(hDlg, 0);
         } else if (uMsg==WM_COMMAND){
@@ -2303,6 +2339,12 @@ LRESULT CALLBACK KLSListModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                         EndDialog(hDlg, 0);
         } else if (uMsg==WM_LANG_CHANGED){
                 ApplyDialogLanguage(hDlg, P2P_ITEM_EDIT);
+        } else if (uMsg==WM_CTLCOLORDLG || uMsg==WM_CTLCOLORSTATIC || uMsg==WM_CTLCOLORBTN || uMsg==WM_CTLCOLORLISTBOX || uMsg==WM_CTLCOLORCOMBOBOX || uMsg==WM_CTLCOLORSCROLLBAR || uMsg==WM_CTLCOLOREDIT){
+                HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                if (hBrush) return (LRESULT)hBrush;
+        } else if (uMsg==WM_ERASEBKGND){
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
         }
         return 0;
 }
@@ -2535,6 +2577,11 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                                 SendMessage(hCombo, CB_SETCURSEL, (WPARAM)ctx.selIdx, 0);
                         }
                 }
+                {
+                        HWND hDarkChk = CreateWindowA("BUTTON", LNG(THEME_DARK), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, 130, 55, 50, 14, hDlg, (HMENU)IDC_DARK_THEME, hx, NULL);
+                        SendMessage(hDarkChk, BM_SETCHECK, g_dark_mode ? BST_CHECKED : BST_UNCHECKED, 0);
+                }
+                Theme_OnInitDialog(hDlg);
                 break;
         case WM_CLOSE:
                 EndDialog(hDlg, 0);
@@ -2569,6 +2616,11 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                                         }
                                 }
                         }
+                        break;
+                case IDC_DARK_THEME:
+                        Theme_Toggle();
+                        InvalidateRect(hDlg, NULL, TRUE);
+                        Theme_ApplyToDialogChildren(hDlg);
                         break;
                 };
                 break;
@@ -2616,6 +2668,22 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         }
                 }
                 break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
         };
         return 0;
 }
@@ -2629,6 +2697,9 @@ void ShowAboutDialog(HWND hDlg) {
 
 LRESULT CALLBACK CustomIPDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
+                case WM_INITDIALOG:
+                        Theme_OnInitDialog(hDlg);
+                        break;
                 case WM_CLOSE:
                         EndDialog(hDlg, 0);
                         break;
@@ -2651,6 +2722,22 @@ LRESULT CALLBACK CustomIPDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         break;
                 case WM_LANG_CHANGED:
                         ApplyDialogLanguage(hDlg, KAILLERA_CUSTOMIP);
+                        break;
+                case WM_CTLCOLORDLG:
+                case WM_CTLCOLORSTATIC:
+                case WM_CTLCOLORBTN:
+                case WM_CTLCOLORLISTBOX:
+                case WM_CTLCOLORCOMBOBOX:
+                case WM_CTLCOLORSCROLLBAR:
+                case WM_CTLCOLOREDIT:
+                        {
+                                HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                                if (hBrush) return (LRESULT)hBrush;
+                        }
+                        break;
+                case WM_ERASEBKGND:
+                        if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                                return 1;
                         break;
         };
         return 0;
@@ -2754,6 +2841,7 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                         ApplyDialogLanguage(hDlg, KAILLERA_SSDLG);
                         KLSListLoad();
                         UpdateModeRadioButtons(hDlg);
+                        Theme_OnInitDialog(hDlg);
                         }
                         break;
         case WM_CLOSE:
@@ -2867,6 +2955,22 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                 }
                         */
                         break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
                 };
                 return 0;
 }

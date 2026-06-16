@@ -8,6 +8,7 @@
 #include "common/nSettings.h"
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
+#include "n02_theme.h"
 
 static void UpdateModeRadioButtons(HWND hDlg){
         int mode = get_active_mode_index();
@@ -539,6 +540,7 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         UpdateModeRadioButtons(hDlg);
 
                 }
+                Theme_OnInitDialog(hDlg);
                 break;
         case WM_SIZE:
                 if (wParam != SIZE_MINIMIZED)
@@ -626,6 +628,22 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         RecordsListDlg_list.SetColumnHeader(4, colNames[4]);
                         RecordsListDlg_list.SetColumnHeader(5, colNames[5]);
                 }
+                break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
                 break;
         };
         return 0;

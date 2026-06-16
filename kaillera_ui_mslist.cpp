@@ -17,6 +17,7 @@
 #include "errr.h"
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
+#include "n02_theme.h"
 
 
 void ConnectToServer(char * ip, int port, HWND pDlg, char*name);
@@ -699,6 +700,8 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
                         wg_refresher_thread.start();
 
+                        Theme_OnInitDialog(hDlg);
+
                         break;
                 case WM_CLOSE:
                         wg_refresher_thread.eend();
@@ -726,6 +729,22 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                                 EndDialog(hDlg, 0);
                         }
                         break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_MASTER_WAITING));
@@ -763,6 +782,9 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         kaillera_mslistColumnTypes[2] = 0;
                         kaillera_mslistColumnOrder[2] = 1;
                         refresher_thread.start();
+
+                        Theme_OnInitDialog(hDlg);
+
                         break;
                 case WM_CLOSE:
                         {
@@ -818,6 +840,22 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 SendMessage(hDlg, WM_CLOSE,0,0);
                         }
                         break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_MASTER_SERVERS));
@@ -1163,6 +1201,8 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 
                         p2p_wg_refresher_thread.start();
 
+                        Theme_OnInitDialog(hDlg);
+
                         break;
                 case WM_CLOSE:
                         p2p_wg_refresher_thread.eend();
@@ -1190,6 +1230,22 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                                 EndDialog(hDlg, 0);
                         }
                         break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
                 SetWindowText(hDlg, LNG(MSL_WAITING_GAMES));

@@ -90,6 +90,9 @@
     <ClCompile Include="common\kaillera_lang_dlg.cpp">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="n02_theme.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kailleraclient.h">
@@ -166,6 +169,9 @@
     </ClInclude>
     <ClInclude Include="common\kaillera_lang_dlg.h">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="n02_theme.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

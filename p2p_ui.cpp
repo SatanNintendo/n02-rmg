@@ -16,6 +16,7 @@
 #include "stats.h"
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
+#include "n02_theme.h"
 
 
 extern HINSTANCE hx;
@@ -1249,6 +1250,7 @@ LRESULT CALLBACK ConnectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                                 g_p2p_advanced_visible = false;
                                 p2p_set_advanced_ui(hDlg, g_p2p_advanced_visible);
                                 p2p_cdlg_timer = SetTimer(hDlg, 0, 1000, 0);
+                                Theme_OnInitDialog(hDlg);
                         }
 
                         break;
@@ -1531,7 +1533,23 @@ LRESULT CALLBACK ConnectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                         SendMessage(hFdlyCombo, CB_SETCURSEL, saved_fdly, 0);
                 }
                 break;
-        };      
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
+        };
         return 0;
 }
 ///////////////////////////////////////////////////
@@ -1696,6 +1714,7 @@ LRESULT CALLBACK P2PStoredUsersModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
                         SetWindowText(GetDlgItem(hDlg, IDC_IP), P2PHBS_temp.hostname);
                         SetWindowText(hDlg, LNG(DLG_TITLE_EDIT));
                 } else SetWindowText(hDlg, LNG(DLG_TITLE_ADD));
+                Theme_OnInitDialog(hDlg);
         } else if (uMsg==WM_CLOSE){
                 EndDialog(hDlg, 0);
         } else if (uMsg==WM_COMMAND){
@@ -1707,6 +1726,12 @@ LRESULT CALLBACK P2PStoredUsersModifyDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam
                         EndDialog(hDlg, 0);
         } else if (uMsg==WM_LANG_CHANGED){
                 ApplyDialogLanguage(hDlg, P2P_ITEM_EDIT);
+        } else if (uMsg==WM_CTLCOLORDLG || uMsg==WM_CTLCOLORSTATIC || uMsg==WM_CTLCOLORBTN || uMsg==WM_CTLCOLORLISTBOX || uMsg==WM_CTLCOLORCOMBOBOX || uMsg==WM_CTLCOLORSCROLLBAR || uMsg==WM_CTLCOLOREDIT){
+                HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                if (hBrush) return (LRESULT)hBrush;
+        } else if (uMsg==WM_ERASEBKGND){
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
         }
         return 0;
 }
@@ -1854,6 +1879,8 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 
                                 UpdateModeRadioButtons(hDlg);
 
+                                Theme_OnInitDialog(hDlg);
+
                         }
                         break;
                 case WM_CLOSE:
@@ -1943,8 +1970,24 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         tabb.SetTabText(1, LNG(TAB_CONNECT));
                 }
                 break;
-                };
-                return 0;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
+                break;
+        };
+        return 0;
 }
 
 void p2p_GUI(){

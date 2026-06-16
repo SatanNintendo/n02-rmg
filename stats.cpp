@@ -7,6 +7,7 @@
 #include <string.h>
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
+#include "n02_theme.h"
 
 
 
@@ -191,6 +192,7 @@ LRESULT CALLBACK n02StatsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         stats_thread.n02_stats_dlg = hDlg;
                         redit = GetDlgItem(hDlg, TXT_CHAT);
                         timer = SetTimer(hDlg, 0, 1000, 0);
+                        Theme_OnInitDialog(hDlg);
                         return 0;
                 }
         case WM_TIMER:
@@ -298,6 +300,22 @@ LRESULT CALLBACK n02StatsDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                 break;
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, N02_STATSDLG);
+                break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
                 break;
         };
         return 0;

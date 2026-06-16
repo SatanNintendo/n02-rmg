@@ -16,6 +16,7 @@
 #include "resource.h"
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
+#include "n02_theme.h"
 
 
 #include <cstdio>
@@ -137,6 +138,7 @@ LRESULT CALLBACK ErrorReporterDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LP
                                 SendMessage(ct, WM_VSCROLL, SB_TOP, 0);
 
                         }
+                        Theme_OnInitDialog(hDlg);
                         break;
                 case WM_CLOSE:
                         EndDialog(hDlg, 0);
@@ -152,6 +154,22 @@ LRESULT CALLBACK ErrorReporterDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LP
                         break;
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, N02_ERRORDLG);
+                break;
+        case WM_CTLCOLORDLG:
+        case WM_CTLCOLORSTATIC:
+        case WM_CTLCOLORBTN:
+        case WM_CTLCOLORLISTBOX:
+        case WM_CTLCOLORCOMBOBOX:
+        case WM_CTLCOLORSCROLLBAR:
+        case WM_CTLCOLOREDIT:
+                {
+                        HBRUSH hBrush = Theme_HandleCtlColor(hDlg, (HDC)wParam, (HWND)lParam);
+                        if (hBrush) return (LRESULT)hBrush;
+                }
+                break;
+        case WM_ERASEBKGND:
+                if (Theme_HandleEraseBkgnd(hDlg, (HDC)wParam))
+                        return 1;
                 break;
         };
         return 0;

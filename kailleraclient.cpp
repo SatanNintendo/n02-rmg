@@ -21,6 +21,8 @@
 #include <stddef.h>
 #include "common/kaillera_lang.h"
 
+#include "n02_theme.h"
+
 
 #define KAILLERA_DLLEXP __declspec(dllexport) __stdcall
 
@@ -365,6 +367,7 @@ extern "C" {
         int KAILLERA_DLLEXP kailleraInit(){
                 k_socket::Initialize();
                 LangInit();
+                Theme_Init();
                 loadSettings();
 
 #ifdef KAILLERA
@@ -435,6 +438,8 @@ extern "C" {
         void KAILLERA_DLLEXP kailleraShutdown(){
                 k_socket::Cleanup();
                 LangShutdown();
+                Theme_Save();
+                Theme_Shutdown();
                 saveSettings();
                 if (gamelist != 0)
                         free(gamelist);
