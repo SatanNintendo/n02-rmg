@@ -20,6 +20,11 @@
 #include <windows.h>
 #include <commctrl.h>
 
+/* WM_CTLCOLORCOMBOBOX may not be defined in older Windows SDK versions */
+#ifndef WM_CTLCOLORCOMBOBOX
+#define WM_CTLCOLORCOMBOBOX 0x0133
+#endif
+
 /* Global dark mode flag. Default: false (light theme) */
 extern bool g_dark_mode;
 
