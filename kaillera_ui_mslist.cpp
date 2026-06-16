@@ -708,6 +708,13 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                         EndDialog(hDlg, 0);
                         break;
                 case WM_NOTIFY:
+                        {
+                                /* Dark-mode ListView column header custom draw.
+                                 * Returns >= 0 if it handled the notification
+                                 * (so we return that value). */
+                                LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
+                                if (hdrResult >= 0) return hdrResult;
+                        }
                         switch (((NMHDR*)lParam)->code) {
                                 case NM_DBLCLK:
                                 if(((NMHDR*)lParam)->hwndFrom == kaillera_mlv.handle){
@@ -806,6 +813,13 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         }
                         break;
                 case WM_NOTIFY:
+                        {
+                                /* Dark-mode ListView column header custom draw.
+                                 * Returns >= 0 if it handled the notification
+                                 * (so we return that value). */
+                                LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
+                                if (hdrResult >= 0) return hdrResult;
+                        }
                         switch (((NMHDR*)lParam)->code) {
                                 case NM_DBLCLK:
                                 if(((NMHDR*)lParam)->hwndFrom == kaillera_mlv.handle){
@@ -1225,6 +1239,13 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         EndDialog(hDlg, 0);
                         break;
                 case WM_NOTIFY:
+                        {
+                                /* Dark-mode ListView column header custom draw.
+                                 * Returns >= 0 if it handled the notification
+                                 * (so we return that value). */
+                                LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
+                                if (hdrResult >= 0) return hdrResult;
+                        }
                         switch (((NMHDR*)lParam)->code) {
                                 case NM_DBLCLK:
                                 if(((NMHDR*)lParam)->hwndFrom == kaillera_mlv.handle){

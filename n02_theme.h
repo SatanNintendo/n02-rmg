@@ -122,3 +122,32 @@ bool Theme_DrawButton(LPDRAWITEMSTRUCT dis);
  *     control, or uninteresting draw stage) — the dialog proc should
  *     continue its own WM_NOTIFY processing. */
 LRESULT Theme_HandleTabNotify(LPARAM lParam);
+
+/* Header-control (SysHeader32 — the column header strip of a
+ * SysListView32) NM_CUSTOMDRAW handler for dark mode.
+ *
+ * By default, ListView column headers are drawn by UxTheme with a light
+ * gray background and black text. SetWindowTheme(hdr, L"", L"") disables
+ * UxTheme, but the classic renderer still uses system colors
+ * (COLOR_BTNFACE / COLOR_BTNTEXT), which are also light. The only way to
+ * make the headers dark is to handle NM_CUSTOMDRAW.
+ *
+ * The ListView forwards NM_CUSTOMDRAW notifications from its embedded
+ * header to its own parent (the dialog). Call this from every dialog
+ * proc's WM_NOTIFY that contains a ListView:
+ *     case WM_NOTIFY: {
+ *         LRESULT tabResult = Theme_HandleTabNotify(lParam);
+ *         if (tabResult >= 0) return tabResult;
+ *         LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
+ *         if (hdrResult >= 0) return hdrResult;
+ *         ... existing WM_NOTIFY logic ...
+ *     }
+ *
+ * Returns:
+ *   - CDRF_NOTIFYITEMDRAW / CDRF_NEWFONT (>= 0) when it handled the
+ *     notification for a SysHeader32 in dark mode — the dialog proc
+ *     should return this value.
+ *   - -1 when it did not handle the notification (light mode, not a
+ *     header, or uninteresting draw stage) — the dialog proc should
+ *     continue its own WM_NOTIFY processing. */
+LRESULT Theme_HandleHeaderNotify(LPARAM lParam);

@@ -2044,6 +2044,12 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         if (re_handle_link_click(lParam))
                                 break;
                         {
+                                /* Dark-mode ListView column header custom draw.
+                                 * Returns >= 0 if it handled the notification
+                                 * (so we return that value). */
+                                LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
+                                if (hdrResult >= 0) return hdrResult;
+
                                 LPNMHDR hdr = (LPNMHDR)lParam;
                                 HWND gamesHeader = (kaillera_sdlg_gameslv.handle != NULL) ? ListView_GetHeader(kaillera_sdlg_gameslv.handle) : NULL;
                                 HWND usersHeader = (kaillera_sdlg_userslv.handle != NULL) ? ListView_GetHeader(kaillera_sdlg_userslv.handle) : NULL;
@@ -2976,6 +2982,14 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                 }
                 break;
                 case WM_NOTIFY:
+
+                        {
+                                /* Dark-mode ListView column header custom draw.
+                                 * Returns >= 0 if it handled the notification
+                                 * (so we return that value). */
+                                LRESULT hdrResult = Theme_HandleHeaderNotify(lParam);
+                                if (hdrResult >= 0) return hdrResult;
+                        }
 
                         if(((LPNMHDR)lParam)->code==NM_DBLCLK && ((LPNMHDR)lParam)->hwndFrom==KLSListLv.handle){
                                 KLSListConnect();
