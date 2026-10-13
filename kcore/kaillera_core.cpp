@@ -242,6 +242,8 @@ bool kaillera_core_connect(char * ip, int port){
                                                         return false;
                                                 }
                                                 addr.sin_port = htons((u_short)server_port);
+                                                if (!KAILLERAC.connection)
+                                                        return false;
                                                 KAILLERAC.connection->set_addr(&addr);
                                                 KAILLERAC.USERSTAT = 1;
                                                 KAILLERAC.PLAYERSTAT = -1;
@@ -748,19 +750,35 @@ inline void kaillera_ProcessGameInstruction(k_instruction * ki) {
         n02_TRACE();
         if (ki->type==GAMEDATA) {
                 
-                short len = ki->load_short();
+                // 'len' comes straight from the network. It used to be a signed short
+                // (so >= 32768 became negative) and was never validated; a length that
+                // is smaller than 'conset' makes ilen == 0 below, which turned the
+                // chunk loop into an endless malloc() loop.
+                int len = ki->load_short();
+                if (len <= 0 || len > 0x4E20 || KAILLERAC.conset <= 0 || (len / KAILLERAC.conset) <= 0)
+                        return;
                 char * kd;
                 
                 if (KAILLERAC.kaillera_incoming_data_cache.length == 256){
                         kd = KAILLERAC.kaillera_incoming_data_cache[0];
                         KAILLERAC.kaillera_incoming_data_cache.removei(0);
-                        if (*((short*)kd) != len)
-                                realloc(kd, len + 2);
+                        if (*((short*)kd) != len) {
+                                // The result of realloc() was thrown away: when the block moved,
+                                // 'kd' pointed to freed memory (use-after-free / heap corruption).
+                                char * resized = (char*)realloc(kd, len + 2);
+                                if (resized == 0) {
+                                        free(kd);
+                                        return;
+                                }
+                                kd = resized;
+                        }
                 } else {
                         kd = (char*)malloc(len+2);
+                        if (kd == 0)
+                                return;
                 }
                 
-                *((short*)kd) = len;
+                *((short*)kd) = (short)len;
                 
                 char * kdd = kd + 2;
                 ki->load_bytes(kdd, len);
@@ -771,8 +789,10 @@ inline void kaillera_ProcessGameInstruction(k_instruction * ki) {
                 
                 //kaillera_core_debug("CACHESI = %i, PLC = %i, INCL = %i", KAILLERAC.kaillera_incoming_data_cache.length, PACKETLOSSCOUNT, KAILLERAC.connection->in_cache.length);
                 
-                for (int x = 0; x < len; x+= ilen) {
+                for (int x = 0; x + ilen <= len; x+= ilen) {
                         char * kds = (char *)malloc(ilen + 2);
+                        if (kds == 0)
+                                break;
                         *((short*)kds) = ilen;
                         //kaillera_core_debug("GVADD %i, x=%i D: %i", x, ilen, *((DWORD*)(kds+2)));
                         memcpy(kds+2, kdd + x, ilen);
@@ -785,14 +805,25 @@ inline void kaillera_ProcessGameInstruction(k_instruction * ki) {
                 
                 int index = ki->load_char();
                 
+                // 'index' is a byte from the network; it was used to index the cache with
+                // no range check (out-of-bounds read -> random crashes while idle on a server).
+                if (index < 0 || index >= KAILLERAC.kaillera_incoming_data_cache.length)
+                        return;
+                
                 char * kd = KAILLERAC.kaillera_incoming_data_cache[index];
                 
                 short len = *((short*)kd);
                 
                 char * kdd = kd + 2;
+                if (len <= 0 || KAILLERAC.conset <= 0)
+                        return;
                 int ilen = len / KAILLERAC.conset;
-                for (int x = 0; x < len; x+= ilen) {
+                if (ilen <= 0)
+                        return;
+                for (int x = 0; x + ilen <= len; x+= ilen) {
                         char * kds = (char *)malloc(ilen + 2);
+                        if (kds == 0)
+                                break;
                         *((short*)kds) = ilen;
                         //kaillera_core_debug("GVADD %i, x=%i D: %i", x, ilen, *((DWORD*)(kds+2)));
                         memcpy(kds+2, kdd + x, ilen);

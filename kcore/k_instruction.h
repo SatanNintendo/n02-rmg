@@ -80,8 +80,18 @@ public:
 	        type = arg_0->type;
 			strncpy(user, arg_0->user, 31);
 			user[31] = 0;
+	        if (arg_0 == this)
+				return;
+			// The constructor already malloc()ed 'buffer'; overwriting the pointer
+			// without freeing it leaked 16+ bytes on every clone().
+			free(buffer);
 	        buffer_len = arg_0->buffer_len;
 	        buffer = (char*)malloc(buffer_len);
+			if (buffer == 0) {
+				buffer_len = 0;
+				buffer_pos = 0;
+				return;
+			}
 	        memcpy(buffer, arg_0->buffer, buffer_len);
 	        buffer_pos = arg_0->buffer_pos;
 	    }
@@ -110,7 +120,7 @@ public:
             int p = min(arg_4, buffer_pos);
             memcpy(arg_0, buffer, p);
             buffer_pos -= p;
-            memcpy(buffer, buffer+p, buffer_pos);
+            memmove(buffer, buffer+p, buffer_pos); // regions overlap
         }
     }
 

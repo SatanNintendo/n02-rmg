@@ -1,6 +1,7 @@
 #include "kaillera_ui.h"
 
 #include <windows.h>
+#include <ctype.h>
 #include "uihlp.h"
 #include "stats.h"
 
@@ -2379,8 +2380,10 @@ void KLSListEdit(){
         if (i>=0&&i<KLSList.length) {
                 KLSNST_temp = KLSList[i];
                 if (DialogBoxParam(hx, (LPCTSTR)P2P_ITEM_EDIT, kaillera_ssdlg, (DLGPROC)KLSListModifyDlgProc, 1)){
-                        KLSList.set(KLSNST_temp, i);
-                        KLSListSave();
+                        if (KLSNST_temp.hostname[0] != 0) {
+                                KLSList.set(KLSNST_temp, i);
+                                KLSListSave();
+                        }
                 }
         }
         KLSListDisplay();
@@ -2390,8 +2393,11 @@ void KLSListEdit(){
 void KLSListAdd(){
         memset(&KLSNST_temp, 0, sizeof(KLSNST));
         if (DialogBoxParam(hx, (LPCTSTR)P2P_ITEM_EDIT, kaillera_ssdlg, (DLGPROC)KLSListModifyDlgProc, 0)){
-                KLSList.add(KLSNST_temp);
-                KLSListSave();
+                // an entry without a host address is useless (and confused the host:port parsing)
+                if (KLSNST_temp.hostname[0] != 0) {
+                        KLSList.add(KLSNST_temp);
+                        KLSListSave();
+                }
         }
         KLSListDisplay();
 }
@@ -2420,7 +2426,7 @@ void KLSListPING(){
                 if (*host == ':') {
                         *host++ = 0x00;
                         port = atoi(host);
-                        port = port==0?27886:port;
+                        port = port==0?27888:port;
                 }
                 host = xx.hostname;
 
@@ -2439,27 +2445,35 @@ void KLSListTRACE() {
 
                 KLSNST xx = KLSList[i];
 
+                // keep only the host part (cut ":port")
                 char* host = xx.hostname;
-                int port = 27888;
-                while (*++host != ':' && *host != 0);
-                if (*host == ':') {
-                        *host++ = 0x00;
-                        port = atoi(host);
-                        port = port == 0?27888 : port;
-                }
-                host = xx.hostname;
+                char* colon = strchr(host, ':');
+                if (colon)
+                        *colon = 0x00;
 
-                char pingstr[128];
-                wsprintf(pingstr, "cmd /k tracert -w 250 %s", host);
+                // The host ends up on a cmd.exe command line. It can come from a server
+                // list downloaded from the network, so accept only plain host names /
+                // IP addresses (no '&', '|', quotes, spaces ...).
+                if (host[0] == 0)
+                        return;
+                for (const char* c = host; *c; ++c) {
+                        if (!(isalnum((unsigned char)*c) || *c == '.' || *c == '-' || *c == '_'))
+                                return;
+                }
+
+                // was: char[128] + wsprintf() -> stack overflow for hosts > ~105 chars
+                char cmd[256];
+                _snprintf_s(cmd, sizeof(cmd), _TRUNCATE, "cmd /k tracert -w 250 %s", host);
 
                 STARTUPINFO si;
                 PROCESS_INFORMATION pi;
                 ZeroMemory(&si, sizeof(si));
                 si.cb = sizeof(si);
                 ZeroMemory(&pi, sizeof(pi));
-                CreateProcess(NULL, pingstr, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-                CloseHandle(pi.hProcess);
-                CloseHandle(pi.hThread);
+                if (CreateProcess(NULL, cmd, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+                        CloseHandle(pi.hProcess);
+                        CloseHandle(pi.hThread);
+                }
         }
 }
 
@@ -2508,49 +2522,31 @@ void KLSListDblClick(HWND hDlg){
 void KLSListLoad(){
         KLSList.clear();
 
-        int initialized = nSettings::get_int("SLInit", 0);
-        if (initialized) {
-                // Load servers from n02.ini
-                int count = nSettings::get_int("SLC", 0);
-                for (int x=1;x<=count;x++){
-                        char idt[32];
-                        KLSNST sx;
-                        wsprintf(idt, "SLS%i", x);
-                        nSettings::get_str(idt,sx.servname, "UserName");
-                        wsprintf(idt, "SLH%i", x);
-                        nSettings::get_str(idt,sx.hostname, "127.0.0.1");
-                        KLSList.add(sx);
-                }
-        } else {
-                int existingCount = nSettings::get_int("SLC", 0);
-                if (existingCount > 0) {
-                        // Existing user upgrading — preserve their server list
-                        for (int x=1;x<=existingCount;x++){
-                                char idt[32];
-                                KLSNST sx;
-                                wsprintf(idt, "SLS%i", x);
-                                nSettings::get_str(idt,sx.servname, "UserName");
-                                wsprintf(idt, "SLH%i", x);
-                                nSettings::get_str(idt,sx.hostname, "127.0.0.1");
-                                KLSList.add(sx);
-                        }
-                } else {
-                        // Truly first run — seed default servers
-                        KLSNST sx;
-                        strcpy(sx.servname, "Chicago SSB"); strcpy(sx.hostname, "92.38.176.115:27888"); KLSList.add(sx);
-                        strcpy(sx.servname, "SSBL Georgia Netplay"); strcpy(sx.hostname, "45.61.60.96:27888"); KLSList.add(sx);
-                        strcpy(sx.servname, "Miami Secret"); strcpy(sx.hostname, "185.144.159.190:27888"); KLSList.add(sx);
-                        strcpy(sx.servname, "Seattle"); strcpy(sx.hostname, "23.227.163.253:27888"); KLSList.add(sx);
-                        strcpy(sx.servname, "San Fran"); strcpy(sx.hostname, "165.227.60.3:27888"); KLSList.add(sx);
-                        KLSListSave();
-                }
-                nSettings::set_int("SLInit", 1);
+        // The local server list is EMPTY on the first start: the player adds the
+        // servers they like with the "Add" button. No default servers are seeded
+        // any more (and the shipped n02.ini contains none either). Servers the
+        // player saved earlier (SLC / SLS<n> / SLH<n> in n02.ini) are loaded as before.
+        int count = nSettings::get_int("SLC", 0);
+        if (count > 1000)
+                count = 1000; // sanity limit for a hand-edited / damaged ini
+        for (int x=1;x<=count;x++){
+                char idt[32];
+                KLSNST sx;
+                // zero-fill: the host:port scanners below walk the string and rely on
+                // the bytes after the terminator being 0, not stack garbage
+                memset(&sx, 0, sizeof(sx));
+                wsprintf(idt, "SLS%i", x);
+                nSettings::get_str(idt,sx.servname, "UserName", sizeof(sx.servname));
+                wsprintf(idt, "SLH%i", x);
+                nSettings::get_str(idt,sx.hostname, "127.0.0.1", sizeof(sx.hostname));
+                KLSList.add(sx);
         }
         KLSListDisplay();
         KLSListRefreshStatus();
 }
 
 void KLSListSave(){
+        int oldCount = nSettings::get_int("SLC", 0);
         nSettings::set_int("SLC",KLSList.length);
         for (int x=0;x<KLSList.length;x++){
                 char idt[32];
@@ -2560,9 +2556,35 @@ void KLSListSave(){
                 wsprintf(idt, "SLH%i", x+1);
                 nSettings::set_str(idt,sx.hostname);
         }
+        // Remove the keys of deleted entries; otherwise a deleted server stayed
+        // behind in n02.ini forever.
+        if (oldCount > 1000)
+                oldCount = 1000;
+        for (int x=KLSList.length+1;x<=oldCount;x++){
+                char idt[32];
+                wsprintf(idt, "SLS%i", x);
+                nSettings::set_str(idt, NULL);
+                wsprintf(idt, "SLH%i", x);
+                nSettings::set_str(idt, NULL);
+        }
 }
 //---------------------------------------
 
+
+// The language combo stores a _strdup()ed file name as item data. It was only freed when the
+// list was rebuilt (WM_LANG_CHANGED) and leaked every time the About dialog was closed.
+static void AboutFreeLangComboData(HWND hCombo) {
+        if (hCombo == NULL)
+                return;
+        int count = (int)SendMessage(hCombo, CB_GETCOUNT, 0, 0);
+        for (int i = 0; i < count; i++) {
+                LPARAM data = SendMessage(hCombo, CB_GETITEMDATA, (WPARAM)i, 0);
+                if (data != CB_ERR && data != 0) {
+                        free((char*)data);
+                        SendMessage(hCombo, CB_SETITEMDATA, (WPARAM)i, 0);
+                }
+        }
+}
 
 LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
@@ -2606,6 +2628,9 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         SendMessage(hDarkChk, BM_SETCHECK, g_dark_mode ? BST_CHECKED : BST_UNCHECKED, 0);
                 }
                 Theme_OnInitDialog(hDlg);
+                break;
+        case WM_DESTROY:
+                AboutFreeLangComboData(GetDlgItem(hDlg, IDC_LANG_COMBO));
                 break;
         case WM_CLOSE:
                 EndDialog(hDlg, 0);

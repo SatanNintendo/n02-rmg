@@ -106,9 +106,29 @@ char convert[256];
 HANDLE out = INVALID_HANDLE_VALUE;
 char recording_player_names[4][32];
 
+// Protects 'out' and RecordingBuffer. The chat / drop callbacks run on the GUI
+// thread while kailleraModifyPlayValues() runs on the emulator thread, so both
+// used to write into the same buffer concurrently.
+class RecordingLockC {
+public:
+        CRITICAL_SECTION cs;
+        RecordingLockC() { InitializeCriticalSection(&cs); }
+        void lock() { EnterCriticalSection(&cs); }
+        void unlock() { LeaveCriticalSection(&cs); }
+};
+static RecordingLockC RecordingLock;
+
+class RecordingLocker {
+public:
+        RecordingLocker() { RecordingLock.lock(); }
+        ~RecordingLocker() { RecordingLock.unlock(); }
+};
+
 class RecordingBufferC {
 public:
-        char buffer[500];
+        // Was 500 bytes with no bounds checking at all: a long chat message
+        // (nick + text) overflowed it and corrupted the heap/globals.
+        char buffer[4096];
 
         char* position;
 
@@ -124,28 +144,39 @@ public:
                         return INT_MAX;
                 return (int)diff;
         }
-        void put_char(char x){
-                *position++ = x;
+
+        int space(){
+                return (int)sizeof(buffer) - len();
         }
 
-        void put_short(short x){
-                *(short*)position = x;
-                position += 2;
-        }
-
-        void put_bytes(char* x, int len){
-                for (int t=0;t<len;t++){
-                        *position++ = *x++;
-                }
-        }
         void write(){
-                DWORD written;
-                WriteFile(out, buffer, len(), &written, NULL);
+                if (out != INVALID_HANDLE_VALUE && len() > 0) {
+                        DWORD written;
+                        WriteFile(out, buffer, len(), &written, NULL);
+                }
                 reset();
+        }
+
+        // Appends n bytes to the recording stream. Never overruns 'buffer':
+        // pending data is flushed first, and data bigger than the whole buffer
+        // is written straight to the file.
+        void put_record(const void* data, int n){
+                if (data == NULL || n <= 0 || out == INVALID_HANDLE_VALUE)
+                        return;
+                if (n > space())
+                        write();
+                if (n > (int)sizeof(buffer)) {
+                        DWORD written;
+                        WriteFile(out, data, (DWORD)n, &written, NULL);
+                        return;
+                }
+                memcpy(position, data, (size_t)n);
+                position += n;
         }
 }RecordingBuffer;
 
 static void close_recording() {
+        RecordingLocker lock;
         if (out != INVALID_HANDLE_VALUE) {
                 if (RecordingBuffer.len() > 0)
                         RecordingBuffer.write();
@@ -158,7 +189,10 @@ int WINAPI _gameCallback(char *game, int player, int numplayers){
 
         close_recording();
 
+        char recErr[1100];
+        recErr[0] = 0;
         if (active_mod.RecordingEnabled()) {
+                RecordingLocker lock;
                 n02_TRACE();
                 RecordingBuffer.reset();
 
@@ -175,16 +209,18 @@ int WINAPI _gameCallback(char *game, int player, int numplayers){
 
 
                 for(unsigned int x=0; x < strlen(FileName); x++){
-                        FileName[x] = convert[FileName[x]];
+                        FileName[x] = convert[(unsigned char)FileName[x]];
                 }
 
                 //open file
                 out = CreateFile(FileName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
                 if(out==INVALID_HANDLE_VALUE){
-                        wsprintf(FileName+1000, LNG(REC_FAILED), FileName, GetLastError());
-                        MessageBox(0,FileName+1000, LNG(REC_ERROR_TITLE),0);
+                        // Shown after the lock is released (a modal box must not stall
+                        // the emulator thread, which needs the same lock every frame).
+                        _snprintf_s(recErr, sizeof(recErr), _TRUNCATE, LNG(REC_FAILED), FileName, GetLastError());
                 }
+                else {
 
                 DWORD written;
                 char GameName[128];
@@ -192,16 +228,23 @@ int WINAPI _gameCallback(char *game, int player, int numplayers){
                 strncpy(GameName, (game != NULL) ? game : "", sizeof(GameName) - 1);
                 GameName[sizeof(GameName) - 1] = 0;
 
+                // The header field is a fixed 128 bytes. Reading 128 bytes straight
+                // from the emulator's appName pointer over-reads short strings (and
+                // can fault at a page boundary); APP is a zero padded 128 byte copy.
                 WriteFile(out, "KRC1", 4, &written, NULL);
-                WriteFile(out, infos_copy.appName, 128, &written, NULL);
+                WriteFile(out, APP, 128, &written, NULL);
                 WriteFile(out, GameName, 128, &written, NULL);
                 time_t mytime = time(NULL);
                 WriteFile(out, (char*)&mytime, 4, &written, NULL);
                 WriteFile(out, (char*)&player, 4, &written, NULL);
                 WriteFile(out, (char*)&numplayers, 4, &written, NULL);
                 WriteFile(out, (char*)recording_player_names, 128, &written, NULL);
+                }
                 n02_TRACE();
         }
+
+        if (recErr[0] != 0)
+                MessageBox(0, recErr, LNG(REC_ERROR_TITLE), 0);
 
         if (infos_copy.gameCallback)
                 return infos_copy.gameCallback(game, player, numplayers);
@@ -210,29 +253,39 @@ int WINAPI _gameCallback(char *game, int player, int numplayers){
 }
 
         void WINAPI _chatReceivedCallback(char *nick, char *text){
-                if (out != INVALID_HANDLE_VALUE) {
-                        RecordingBuffer.put_char(8);
-                        {
-                                size_t nickLen = strlen(nick) + 1;
-                                size_t textLen = strlen(text) + 1;
-                                int nickLenI = (nickLen > (size_t)INT_MAX) ? INT_MAX : (int)nickLen;
-                                int textLenI = (textLen > (size_t)INT_MAX) ? INT_MAX : (int)textLen;
-                                RecordingBuffer.put_bytes(nick, nickLenI);
-                                RecordingBuffer.put_bytes(text, textLenI);
+                {
+                        RecordingLocker lock;
+                        if (out != INVALID_HANDLE_VALUE) {
+                                // record: 8, nick\0, text\0 (text is truncated if it does not fit)
+                                char rec[1 + 256 + 1024];
+                                int n = 0;
+                                rec[n++] = 8;
+                                const char* nk = (nick != NULL) ? nick : "";
+                                const char* tx = (text != NULL) ? text : "";
+                                size_t nl = strlen(nk); if (nl > 255) nl = 255;
+                                memcpy(rec + n, nk, nl); n += (int)nl; rec[n++] = 0;
+                                size_t tl = strlen(tx); if (tl > 1023) tl = 1023;
+                                memcpy(rec + n, tx, tl); n += (int)tl; rec[n++] = 0;
+                                RecordingBuffer.put_record(rec, n);
                         }
                 }
                 if (infos_copy.chatReceivedCallback)
                         infos_copy.chatReceivedCallback(nick, text);
         }
         void WINAPI _clientDroppedCallback(char *nick, int playernb){
-                if (out != INVALID_HANDLE_VALUE) {
-                        RecordingBuffer.put_char(20);
-                        {
-                                size_t nickLen = strlen(nick) + 1;
-                                int nickLenI = (nickLen > (size_t)INT_MAX) ? INT_MAX : (int)nickLen;
-                                RecordingBuffer.put_bytes(nick, nickLenI);
+                {
+                        RecordingLocker lock;
+                        if (out != INVALID_HANDLE_VALUE) {
+                                // record: 20, nick\0, playernb (4 bytes)
+                                char rec[1 + 256 + 4];
+                                int n = 0;
+                                rec[n++] = 20;
+                                const char* nk = (nick != NULL) ? nick : "";
+                                size_t nl = strlen(nk); if (nl > 255) nl = 255;
+                                memcpy(rec + n, nk, nl); n += (int)nl; rec[n++] = 0;
+                                memcpy(rec + n, &playernb, 4); n += 4;
+                                RecordingBuffer.put_record(rec, n);
                         }
-                        RecordingBuffer.put_bytes((char*)&playernb, 4);
                 }
                 if (infos_copy.clientDroppedCallback)
                         infos_copy.clientDroppedCallback(nick, playernb);
@@ -469,7 +522,8 @@ extern "C" {
                                 }
                                 l++;
                                 gamelist = (char*)malloc(l);
-                        memcpy(gamelist, infos.gameList, l);
+                        if (gamelist != 0)
+                                memcpy(gamelist, infos.gameList, l);
                 }
                 infos.gameList = gamelist;
                 infos_copy = infos;
@@ -544,6 +598,11 @@ extern "C" {
                                 }
                         } while (KSSDFA.state != 3);
                 }
+
+                // game_thread lives on this stack frame, but capture() put its address
+                // into nThread::list and nothing ever removed it: a dangling pointer per
+                // call, and after NTHREAD_MAX (256) calls the list overflowed.
+                game_thread.release();
         }
 
         int  KAILLERA_DLLEXP kailleraModifyPlayValues(void *values, int size){
@@ -555,11 +614,17 @@ extern "C" {
 
                         short siz = active_mod.MPV(values, size);
 
-                        if (out != INVALID_HANDLE_VALUE) {
-                                RecordingBuffer.put_char(0x12);
-                                RecordingBuffer.put_short(siz);
-                                RecordingBuffer.put_bytes((char*)values, siz);
-                                RecordingBuffer.write();
+                        {
+                                RecordingLocker lock;
+                                if (out != INVALID_HANDLE_VALUE) {
+                                        char hdr[3];
+                                        hdr[0] = 0x12;
+                                        memcpy(hdr + 1, &siz, 2);
+                                        RecordingBuffer.put_record(hdr, 3);
+                                        if (siz > 0)
+                                                RecordingBuffer.put_record(values, siz);
+                                        RecordingBuffer.write();
+                                }
                         }
                         return siz;
 

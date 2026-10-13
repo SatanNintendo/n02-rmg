@@ -95,16 +95,24 @@ protected:
 	#endif
 	} t;
 
+	// true when 't' holds a real HANDLE returned by CreateThread() that this
+	// object must CloseHandle() (false for capture()d threads / pseudo handles)
+	bool owned;
+
 public:
 	static slist<nPThread*, NTHREAD_MAX> list;
 
 public:
+	nPThread() { t.handle = 0; owned = false; }
 	virtual void run(void) {}
 public:
 
 
 	int create();
 	int capture();
+	// Undo capture(): drop the object from the thread list. Must be called
+	// before a captured (e.g. stack allocated) nThread goes out of scope.
+	void release();
 	int destroy();
 	int prioritize(int priority);
 	int status();

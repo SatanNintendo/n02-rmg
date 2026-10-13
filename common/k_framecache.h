@@ -5,6 +5,8 @@
 #endif
 
 #include <memory>
+#include <stdlib.h>
+#include <string.h>
 
 class k_framecache {
 public:
@@ -17,9 +19,15 @@ public:
 		size = 0;
 	}
 	k_framecache(char * buf, int len){
-		pos=size= len;
-		buffer = (char*)malloc(len);
-		memcpy(buffer, buf, len);
+		pos = size = 0;
+		buffer = 0;
+		if (len > 0) {
+			buffer = (char*)malloc(len);
+			if (buffer != 0) {
+				memcpy(buffer, buf, len);
+				pos = size = len;
+			}
+		}
 	}
 	~k_framecache(){
 		if (buffer != 0) {
@@ -32,6 +40,8 @@ public:
 	void put_data(void * data, int datalen) {
 		if(datalen > 0) {			
 			ensure_sized(pos+datalen);
+			if (buffer == 0 || size < pos + datalen)
+				return; // allocation failed, drop the data instead of crashing
 			memcpy(buffer + pos, data, datalen);
 			pos += datalen;
 		}
@@ -48,11 +58,15 @@ public:
 		if (buffer == 0){
 			size = datalen * 6;
 			buffer = (char*)malloc(size);
+			if (buffer == 0)
+				size = 0;
 		} else {
-			int ecx = datalen;
 			if (datalen > size) {
-				size = datalen * 2;
-				buffer = (char*)realloc(buffer, size);
+				char * grown = (char*)realloc(buffer, datalen * 2);
+				if (grown != 0) {
+					buffer = grown;
+					size = datalen * 2;
+				}
 			}
 		}
 	}
@@ -61,7 +75,7 @@ public:
 		if ((x = min(len, pos)) > 0) {
 			memcpy(datab, buffer, x);
 			pos -= x;
-			memcpy(buffer, buffer+x, pos);
+			memmove(buffer, buffer+x, pos); // regions overlap
 			return x;
 		}
 		return 0;

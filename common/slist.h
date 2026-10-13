@@ -22,6 +22,10 @@ public:
 
 	//add 	adds an element to the list
 	void add(_Type element){
+		// Bounds check: the array is static, overflowing it would corrupt
+		// the neighbouring 'length' field and whatever follows the list.
+		if (length >= _Size)
+			return;
 		items[length++] = element;
 	}
 

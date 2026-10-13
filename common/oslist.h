@@ -9,6 +9,7 @@
 #define N_STL_OSLIST
 
 #include <string>
+#include <string.h>
 #ifndef __GNUC__
 #pragma intrinsic (memcpy)
 #endif
@@ -27,6 +28,8 @@ public:
 
 	//add 	adds an element to the list
 	void add(_Type element){
+		if (length >= _Size)
+			return; // static array is full, don't overflow
 		items[length++] = element;
 	}
 
@@ -35,7 +38,7 @@ public:
 		if (i >= 0 && i < length) {
 			int l = length-1;
 			if (l!=i) {
-				memcpy(&items[i], &items[i+1], (l-i) * sizeof(_Type));
+				memmove(&items[i], &items[i+1], (l-i) * sizeof(_Type)); // regions overlap
 			}
 			length = l;
 		}

@@ -73,7 +73,7 @@ void _n02_TRACE(const char * file, int line){
 //      kprintf("Dumping trace");
 //      for (unsigned int x = 1; x <= n02_TRACE_stack_len && x <=n02_TRACE_stack_pos ; x++ ) {
 //              wsprintf(EBX, "%u: %s[%i]\r\n", (n02_TRACE_stack_pos-x), n02_TRACE_stack[(n02_TRACE_stack_pos-x)&n02_TRACE_stack_mask].file, n02_TRACE_stack[(n02_TRACE_stack_pos-x)&n02_TRACE_stack_mask].line);
-//              kprintf(EBX);
+//              kprintf("%s", EBX);
 //      }
 //}
 
@@ -123,13 +123,13 @@ LRESULT CALLBACK ErrorReporterDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LP
                                 HWND ct = GetDlgItem(hDlg, TXT_CHAT);
 
                                 re_append(ct, EBX, 0x000000FF);
-                                kprintf(EBX);
+                                kprintf("%s", EBX);
 //#ifdef TRACE
                                 re_append(ct, LNG(TRACE_STACK_HEADER), 0x0000FF00);
-                                kprintf(LNG(TRACE_STACK_HEADER));
+                                kprintf("%s", LNG(TRACE_STACK_HEADER));
                                 for (unsigned int x = 1; x <= n02_TRACE_stack_len && x <=n02_TRACE_stack_pos ; x++ ) {
                                         wsprintf(EBX, "%u: %s[%i]\r\n", (n02_TRACE_stack_pos-x), n02_TRACE_stack[(n02_TRACE_stack_pos-x)&n02_TRACE_stack_mask].file, n02_TRACE_stack[(n02_TRACE_stack_pos-x)&n02_TRACE_stack_mask].line);
-                                        kprintf(EBX);
+                                        kprintf("%s", EBX);
                                         re_append(ct, EBX, 0x00FF0000);
                                 }
 //#endif

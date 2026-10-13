@@ -10,7 +10,9 @@ public:
         static void Initialize(const char * submo = "p2p", bool global = false);
         static void Terminate();
         static int get_int(const char * key, int def_ = -1);
-        static char* get_str(const char * key, char * buf, const char * def_=0);
+        // bufsize: size of 'buf'. It used to be hard-coded to 128, which overflowed
+        // the smaller destination buffers some callers pass (32 / 64 bytes).
+        static char* get_str(const char * key, char * buf, const char * def_=0, int bufsize=128);
         static void set_int(const char * key, int val);
         static void set_str(const char * key, const char * val);
 };

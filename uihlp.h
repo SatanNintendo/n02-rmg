@@ -178,6 +178,9 @@ public:
 
 
 
+        // defined in n02_theme.cpp; returns the color unchanged in light mode
+        COLORREF Theme_MapChatColor(COLORREF color);
+
         inline void re_append(HWND hwnd, const char * line, COLORREF color = 0){
                 // Preserve the user's selection (p2pkaillera behavior). This prevents the output window
                 // from "stealing" selection when the user highlights/copies text.
@@ -195,7 +198,9 @@ public:
                 // Important: don't touch CFM_EFFECTS here; auto URL detection uses CFE_LINK and we
                 // don't want to wipe it.
                 crf.dwMask = CFM_COLOR;
-                crf.crTextColor = color;
+                // Dark theme: black / dark blue text was invisible on the dark background
+                // and when selected (see Theme_MapChatColor).
+                crf.crTextColor = Theme_MapChatColor(color);
 
                 SendMessage(hwnd, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&crf);
                 SendMessage(hwnd, EM_REPLACESEL, FALSE, (LPARAM)line);

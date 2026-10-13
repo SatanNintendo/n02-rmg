@@ -703,7 +703,7 @@ void LangInit() {
     /* Read the preferred language from settings */
     nSettings::Initialize("okai");
     char langFile[64];
-    nSettings::get_str("Lang", langFile, "English");
+    nSettings::get_str("Lang", langFile, "English", sizeof(langFile));
     nSettings::Terminate();
 
     /* Build the path to the .lng file */

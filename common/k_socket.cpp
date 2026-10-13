@@ -41,7 +41,7 @@ int k_socket::clone(k_socket * remote){
 
 void k_socket::close(){
 	//kprintf(__FILE__ ":%i", __LINE__);
-	if(sock != 0) {
+	if(sock != 0 && sock != INVALID_SOCKET) {
 		shutdown(sock, 2);
 		closesocket(sock);
 		FD_CLR(sock, &sockets);
@@ -56,6 +56,10 @@ void k_socket::close(){
 			}
 		}
 	}
+	// Forget the handle: close() is called explicitly and again from the
+	// destructor, and Windows may already have reused the numeric handle for
+	// a different socket by then (which we would then close by mistake).
+	sock = 0;
 	//kprintf(__FILE__ ":%i", __LINE__);
 	list.remove(this);
 	//kprintf(__FILE__ ":%i", __LINE__);
@@ -97,11 +101,14 @@ bool k_socket::initialize(int param_port, int minbuffersize){
 			//kprintf("SO_RCVBUF: %ubytes", val);
 			return true;
 		} else {
+			closesocket(sock);
+			sock = 0;
 			return false;
 		}
 	} else {
 		//printf("uh oh. socket() returned -1!\n");
-		return 1;
+		sock = 0;
+		return false;
 	}
 }
 
@@ -176,8 +183,7 @@ bool k_socket::check_sockets(int secs, int ms){
 	tv.tv_sec = secs;
 	tv.tv_usec = ms * 1000;
 
-	fd_set temp;
-	memcpy(&temp, &sockets, 2 * sizeof(u_int) + sizeof(SOCKET) * sockets.fd_count);
+	fd_set temp = sockets;
 
 	if(select((int)(ndfs + 1), &temp, 0, 0, &tv) != 0) {
 		if(list.size() > 0) {

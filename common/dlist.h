@@ -8,6 +8,8 @@
 #ifndef N_STL_DLIST
 #define N_STL_DLIST
 #include <memory>
+#include <stdlib.h>
+#include <string.h>
 
 template <class _Type, int _MinLen = 32>//, _Type _DefValue = 0>
 class dlist {
@@ -32,11 +34,20 @@ public:
 
 	//add 	adds an element to the list
 	void add(_Type element){
+		// Capacity is always max(_MinLen, length). The old check used
+		// 'length > _MinLen', which wrote one element past the allocation
+		// when length == _MinLen (heap overflow on the 33rd item for
+		// _MinLen == 32, on the 2nd item for _MinLen == 1).
 		if (items == 0) {
 			items = (_Type*)malloc(_MinLen * sizeof(_Type));
-		} else {
-			if (length > _MinLen)
-				items = (_Type*)realloc(items, (length + 1) * sizeof(_Type));
+			if (items == 0)
+				return;
+			length = 0;
+		} else if (length >= _MinLen) {
+			_Type * grown = (_Type*)realloc(items, (length + 1) * sizeof(_Type));
+			if (grown == 0)
+				return; // keep the old block (no leak, no NULL deref)
+			items = grown;
 		}
 		items[length++] = element;
 	}
@@ -50,7 +61,9 @@ public:
 			}
 			length = l;
 			if (l >= _MinLen) {
-				items = (_Type*)realloc(items, l * sizeof(_Type));
+				_Type * shrunk = (_Type*)realloc(items, l * sizeof(_Type));
+				if (shrunk != 0)
+					items = shrunk;
 			}
 		}
 	}
@@ -67,7 +80,7 @@ public:
 
 	//set 	sets an element value in the list
 	void set(_Type v, int i){
-		if (i >=0 & i < length) {
+		if (i >= 0 && i < length) {
 			items[i] = v;
 		}
 	}
@@ -81,7 +94,9 @@ public:
 	void clear(){
 		length = 0;
 		if (items != 0){
-			items = realloc(items, _MinLen * sizeof(_Type));
+			_Type * shrunk = (_Type*)realloc(items, _MinLen * sizeof(_Type));
+			if (shrunk != 0)
+				items = shrunk;
 		}
 	}
 

@@ -1792,9 +1792,9 @@ void P2PLoadStoredUsersList(){
                 char idt[32];
                 P2PHBS sx;
                 wsprintf(idt, "ULUN%i", x);
-                nSettings::get_str(idt,sx.username, "UserName");
+                nSettings::get_str(idt,sx.username, "UserName", sizeof(sx.username));
                 wsprintf(idt, "ULHN%i", x);
-                nSettings::get_str(idt,sx.hostname, "127.0.0.1");
+                nSettings::get_str(idt,sx.hostname, "127.0.0.1", sizeof(sx.hostname));
                 P2PStoredUsers.add(sx);
         }
         P2PDisplayP2PStoredUsers();

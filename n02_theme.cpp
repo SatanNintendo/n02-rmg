@@ -306,6 +306,90 @@ void Theme_ApplyToRichEdit(HWND hRichEdit) {
         SendMessage(hRichEdit, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cf);
 }
 
+/* ----------------------------------------------------------------------------
+ * Chat colors
+ *
+ * Chat lines are written with colors designed for a white background:
+ *   black (0,0,0)       normal lines, join/leave, user messages
+ *   dark blue (0,0,102) player join/leave in the game room
+ *   blue (0,0,255)      connection status
+ *   green (0,153,0)     MOTD, announcements
+ *   red (255,0,0)       errors
+ * On the dark background (#1E1E1E) black / dark blue have a contrast of only
+ * ~1.1-1.3:1, i.e. the text is practically invisible. In addition RichEdit draws
+ * a selection with inverted colors (text = 255 - color on bg = 255 - #1E1E1E =
+ * #E1E1E1), so a dark color turns into an almost white one on a light-gray
+ * highlight and vanishes again.
+ *
+ * The palette below is bright but not white; every entry has a WCAG contrast
+ * of >= 5.5:1 against #1E1E1E and, inverted, against #E1E1E1.
+ * -------------------------------------------------------------------------- */
+COLORREF Theme_MapChatColor(COLORREF color) {
+        if (!g_dark_mode)
+                return color;
+
+        struct HuePal { double hue; COLORREF color; };
+        static const HuePal pal[] = {
+                {   0.0, RGB(255, 158, 158) },  /* red     */
+                {  30.0, RGB(255, 171,  87) },  /* orange  */
+                {  55.0, RGB(255, 234,   0) },  /* yellow  */
+                { 120.0, RGB(102, 255, 102) },  /* green   */
+                { 180.0, RGB( 77, 255, 255) },  /* cyan    */
+                { 225.0, RGB(145, 172, 253) },  /* blue    */
+                { 280.0, RGB(220, 155, 253) },  /* purple  */
+                { 360.0, RGB(255, 158, 158) }   /* red (wrap-around) */
+        };
+
+        int r = GetRValue(color);
+        int g = GetGValue(color);
+        int b = GetBValue(color);
+        int mx = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        int mn = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        int delta = mx - mn;
+
+        /* black / white / gray -> the normal dark-theme text color */
+        if (delta < 32)
+                return ThemeColors::DarkRichText;
+
+        double d = (double)delta;
+        double h;
+        if (mx == r) {
+                h = (double)(g - b) / d;
+                if (h < 0.0) h += 6.0;
+        } else if (mx == g) {
+                h = 2.0 + (double)(b - r) / d;
+        } else {
+                h = 4.0 + (double)(r - g) / d;
+        }
+        h *= 60.0;
+
+        int best = 0;
+        double bestDist = 1e9;
+        for (int i = 0; i < (int)(sizeof(pal) / sizeof(pal[0])); i++) {
+                double dist = h - pal[i].hue;
+                if (dist < 0.0) dist = -dist;
+                if (dist < bestDist) {
+                        bestDist = dist;
+                        best = i;
+                }
+        }
+        return pal[best].color;
+}
+
+/* Undo Theme_ApplyToRichEdit(): system background + automatic text color. */
+static void Theme_RestoreRichEditLight(HWND hRichEdit) {
+        if (hRichEdit == NULL)
+                return;
+        /* wParam = TRUE: use the system default window color */
+        SendMessage(hRichEdit, EM_SETBKGNDCOLOR, 1, 0);
+        CHARFORMATA cf;
+        memset(&cf, 0, sizeof(cf));
+        cf.cbSize = sizeof(cf);
+        cf.dwMask = CFM_COLOR;
+        cf.dwEffects = CFE_AUTOCOLOR;
+        SendMessage(hRichEdit, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cf);
+}
+
 void Theme_ApplyToDialogChildren(HWND hDlg) {
         if (hDlg == NULL)
                 return;
@@ -358,6 +442,12 @@ void Theme_ApplyToDialogChildren(HWND hDlg) {
                             IsScrollBarControl(child) ||
                             IsTabControl(child)) {
                                 SetWindowTheme(child, NULL, NULL);
+                        }
+
+                        /* The RichEdit background / text color set in dark mode
+                         * used to stay in place after switching back to light. */
+                        if (IsRichEditControl(child)) {
+                                Theme_RestoreRichEditLight(child);
                         }
 
                         /* Convert BS_OWNERDRAW buttons back to BS_PUSHBUTTON

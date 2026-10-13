@@ -33,11 +33,22 @@ public:
                         ptr += p;
                 }
         }
+        // arg_4 is the size of the destination buffer. The old code wrote the
+        // terminator at arg_0[arg_4] (one byte past the buffer for a 127+ char
+        // string) and used strlen() on file data that may not be terminated.
         void load_str(char* arg_0, unsigned int arg_4) {
-                arg_4 = min(arg_4, (unsigned int)strlen(ptr) + 1);
-                arg_4 = min(arg_4, (unsigned int)(end - ptr + 1));
-                load_bytes(arg_0, arg_4);
-                arg_0[arg_4] = 0x00;
+                if (arg_0 == NULL || arg_4 == 0)
+                        return;
+                unsigned int avail = (ptr != NULL && ptr < end) ? (unsigned int)(end - ptr) : 0;
+                unsigned int n = 0;
+                while (n < avail && ptr[n] != 0)
+                        n++;
+                unsigned int take = (n < arg_4 - 1) ? n : (arg_4 - 1);
+                if (take > 0)
+                        memcpy(arg_0, ptr, take);
+                arg_0[take] = 0x00;
+                // consume the whole string including its terminator
+                ptr += (n + 1 < avail) ? (n + 1) : avail;
         }
         int load_int(){
         int x;
@@ -56,6 +67,18 @@ public:
     }
         
 } PlayBackBuffer;
+
+// The buffer allocated by player_play() was never freed (the free() was
+// commented out), so every replay leaked the entire recording. It is now
+// released before the next one is loaded.
+static void player_FreeBuffer(){
+        if (PlayBackBuffer.buffer != NULL) {
+                free(PlayBackBuffer.buffer);
+                PlayBackBuffer.buffer = NULL;
+        }
+        PlayBackBuffer.ptr = NULL;
+        PlayBackBuffer.end = NULL;
+}
 
 //==============================================
 
@@ -89,9 +112,16 @@ void player_play(char * fn){
                 return;
         }
 
+        player_FreeBuffer();
         PlayBackBuffer.buffer = (char*)malloc(len+66);
+        if (PlayBackBuffer.buffer == NULL) {
+                CloseHandle(in);
+                return;
+        }
+        // zero everything (incl. the 66 spare bytes) so string reads can't run off the data
+        memset(PlayBackBuffer.buffer, 0, len+66);
 
-        DWORD bytesRead;
+        DWORD bytesRead = 0;
         ReadFile(in, PlayBackBuffer.buffer, len, &bytesRead, NULL);
 
         PlayBackBuffer.end = PlayBackBuffer.buffer + len;
@@ -103,7 +133,7 @@ void player_play(char * fn){
         DWORD headerSize = isKRC1 ? 400 : 272;
 
         if (len < headerSize) {
-                free(PlayBackBuffer.buffer);
+                player_FreeBuffer();
                 MessageBox(RecordsListDlg, LNG(PLAYER_FILE_TOO_SHORT), LNG(PLAYER_ERR_TITLE), MB_OK | MB_ICONSTOP);
                 return;
         }
@@ -118,7 +148,7 @@ void player_play(char * fn){
                 char wdr[2000];
                 wsprintf(wdr, LNG(PLAYER_EMU_MISMATCH), APPC, APP);
                 if (MessageBox(RecordsListDlg, wdr, LNG(PLAYER_ERR_TITLE), MB_YESNO | MB_ICONEXCLAMATION) != IDYES) {
-                        free(PlayBackBuffer.buffer);
+                        player_FreeBuffer();
                         return;
                 }
         }
@@ -144,7 +174,7 @@ void player_play(char * fn){
         //while(player_playing)
                 //Sleep(2000);
         
-        //free (PlayBackBuffer.buffer);
+        // PlayBackBuffer.buffer is released by the next player_play() (see player_EndGame)
         n02_TRACE();
 }
 void RecordsList_PlaySelected(){
@@ -191,9 +221,11 @@ void RecordsList_Populate_fn(char * fn, int i) {
         DWORD bytesRead;
         ReadFile(in, filebuf, len, &bytesRead, NULL);
         CloseHandle(in);
-        PlayBackBuffer.buffer = filebuf;
-        PlayBackBuffer.ptr = filebuf;
-        PlayBackBuffer.end = filebuf + len;
+        // use a private reader: the global PlayBackBuffer belongs to a running playback
+        PlayBackBufferC pb;
+        pb.buffer = filebuf;
+        pb.ptr = filebuf;
+        pb.end = filebuf + len;
         char VER[5];
         memcpy(VER, filebuf, 4);
         VER[4] = 0;
@@ -207,15 +239,15 @@ void RecordsList_Populate_fn(char * fn, int i) {
                 free(filebuf);
                 return;
         }
-        PlayBackBuffer.ptr = PlayBackBuffer.buffer + 4;
+        pb.ptr = pb.buffer + 4;
         char APPC[128];
-        PlayBackBuffer.load_str(APPC, 128);
-        PlayBackBuffer.ptr = PlayBackBuffer.buffer + 132;       
-        PlayBackBuffer.load_str(GAME,128);
-        PlayBackBuffer.ptr = PlayBackBuffer.buffer + 260;
-        time_t timee = PlayBackBuffer.load_int();
-        playerno = PlayBackBuffer.load_int();
-        numplayers = PlayBackBuffer.load_int();
+        pb.load_str(APPC, 128);
+        pb.ptr = pb.buffer + 132;       
+        pb.load_str(GAME,128);
+        pb.ptr = pb.buffer + 260;
+        time_t timee = pb.load_int();
+        playerno = pb.load_int();
+        numplayers = pb.load_int();
         // Col 0: Date - KRC1 uses header timestamp, KRC0 parses filename with header fallback
         {
                 bool parsed = false;
@@ -715,6 +747,10 @@ int player_MPV(void*values,int size){
 void player_EndGame(){
         n02_TRACE();
         player_playing = false;
+        // NOTE: the buffer is deliberately not freed here. player_EndGame() can be
+        // called from the GUI thread while the emulator thread is still inside
+        // player_MPV(); it is released by the next player_play() instead, so at
+        // most one recording is ever kept alive.
         // Notify emulator of any players not already dropped by the recording
         for (int i = numplayers; i >= 1; i--) {
                 if (i <= 16 && player_was_dropped[i - 1])

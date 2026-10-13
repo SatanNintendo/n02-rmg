@@ -49,6 +49,22 @@ public:
 	        default_ipm = 3;
 	    }
 
+	    // k_message had no destructor: every instruction body still sitting in
+	    // out_cache / in_cache (up to ~30 malloc()ed blocks) leaked each time a
+	    // server connection was deleted.
+	    ~k_message(){
+			for (int i = 0; i < out_cache.size(); i++) {
+				free(out_cache.items[i].body);
+				out_cache.items[i].body = NULL;
+			}
+			out_cache.clear();
+			for (int i = 0; i < in_cache.size(); i++) {
+				free(in_cache.items[i].body);
+				in_cache.items[i].body = NULL;
+			}
+			in_cache.clear();
+	    }
+
 	    void send_instruction(k_instruction * arg_0){
 			char temp[32768];
 	        int l = arg_0->write_to_message(temp, 32767);

@@ -52,6 +52,16 @@ public:
 		dsc = 0;
     }
 
+    // ssrv_cache holds malloc()ed packets that were never fetched via
+    // receive_ssrv(); they leaked when the connection was deleted.
+    ~p2p_message(){
+		for (int i = 0; i < ssrv_cache.length; i++) {
+			free(ssrv_cache.items[i]);
+			ssrv_cache.items[i] = 0;
+		}
+		ssrv_cache.clear();
+    }
+
     void send_instruction(p2p_instruction * arg_0){
         p2p_message::send((char*)arg_0, arg_0->size());
 		////kprintf("Sent:");
@@ -326,7 +336,9 @@ recvx_done:
 							const int payload_len = bufflen - 1;
 							if (payload_len > 0) {
 								const size_t alloc_size = 2 + sizeof(sockaddr_in) + (size_t)payload_len;
-								char* inb = (char*)malloc(alloc_size);
+								// Unauthenticated UDP: cap the queue so a flood of "ssrv"
+								// packets can't make it grow without bound.
+								char* inb = (ssrv_cache.length < 64) ? (char*)malloc(alloc_size) : NULL;
 								if (inb) {
 									*((short*)inb) = (short)payload_len;
 									if (addrp)

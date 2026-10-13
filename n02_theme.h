@@ -76,6 +76,15 @@ void Theme_ApplyToListView(HWND hListView);
 /* Apply dark theme to a RichEdit control. */
 void Theme_ApplyToRichEdit(HWND hRichEdit);
 
+/* Map a chat text color that was chosen for a WHITE background (black, dark
+ * blue, pure blue, dark green, red ...) to a color that stays readable in dark
+ * mode. The result is also readable while the text is selected: a RichEdit with
+ * a custom (dark) background draws selected text inverted (255 - color) on an
+ * inverted (light) background, so the mapped colors are chosen to keep a
+ * contrast of at least ~5.5:1 in BOTH states.
+ * In light mode the color is returned unchanged. */
+COLORREF Theme_MapChatColor(COLORREF color);
+
 /* Apply theme styling (owner-draw conversion + SetWindowTheme) to all child
  * controls of a dialog recursively. In dark mode push buttons are switched
  * to BS_OWNERDRAW so the parent dialog can paint them via WM_DRAWITEM.

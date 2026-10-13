@@ -36,8 +36,10 @@ void nSettings::Terminate(){
 int nSettings::get_int(const char * key, int def_){
         return GetPrivateProfileInt(subm, key, def_, file);
 }
-char* nSettings::get_str(const char * key, char * buf, const char * def_){
-        GetPrivateProfileString(subm, key, def_, buf, 128, file);
+char* nSettings::get_str(const char * key, char * buf, const char * def_, int bufsize){
+        if (buf == 0 || bufsize <= 0)
+                return buf;
+        GetPrivateProfileString(subm, key, def_, buf, bufsize, file);
         return buf;
 }
 void nSettings::set_int(const char * key, int val){

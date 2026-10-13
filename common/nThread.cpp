@@ -40,7 +40,17 @@ void* nPThreadProc (nPThread* thread) {
 int nPThread::create(){
 	//TRACE(nPThread, create, this);
 	n02_TRACE();
-	if (0==pthread_create(&t.handlep, NULL, (void* (*)(void*))nPThreadProc, this)) {
+	// The HANDLE from the previous run of this object was never closed, so
+	// every create() (e.g. each press of "Refresh") leaked one kernel handle.
+	if (owned && t.handlep != 0)
+		CloseHandle(t.handlep);
+	t.handlep = 0;
+	owned = false;
+
+	pthread_t h = 0;
+	if (0==pthread_create(&h, NULL, (void* (*)(void*))nPThreadProc, this)) {
+		t.handlep = h;
+		owned = true;
 		return -1;
 	}
 	return 0;
@@ -49,14 +59,30 @@ int nPThread::create(){
 int nPThread::capture(){
 	//TRACE(nPThread, capture, this);
 	list.add(this);
-	t.handlep = pthread_self();
+	t.handlep = pthread_self(); // pseudo handle, must NOT be closed
+	owned = false;
 	return 0;
+}
+
+void nPThread::release(){
+	list.remove(this);
+	if (!owned)
+		t.handlep = 0;
 }
 
 int nPThread::destroy(){
 	//TRACE(nPThread, destroy, this);
 	list.remove(this);
-	return (pthread_kill(t.handlep, 0)==0)?1:0;
+	// Only ever terminate a thread we created ourselves. For a capture()d
+	// thread the handle is the pseudo handle of the *calling* thread, and
+	// TerminateThread() on it would kill the caller.
+	if (!owned || t.handlep == 0)
+		return 0;
+	int ok = (pthread_kill(t.handlep, 0)==0)?1:0;
+	CloseHandle(t.handlep);
+	t.handlep = 0;
+	owned = false;
+	return ok;
 }
 
 int nPThread::prioritize(int priority){
