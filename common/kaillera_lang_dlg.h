@@ -19,3 +19,13 @@
    This sets window text, button labels, static text, group boxes, etc.
    using the loaded language strings. */
 void ApplyDialogLanguage(HWND hDlg, int dialogId);
+
+/* "Options bar" shown at the bottom of the three main windows (P2P / Server /
+   Playback): language combo box (IDC_LANG_COMBO, with label IDC_LANG_LABEL) and
+   the dark theme check box (IDC_DARK_THEME).
+   - OptionsBar_Refresh() fills/updates the controls; ApplyDialogLanguage() calls it
+     for those dialogs, so it runs on WM_INITDIALOG and on WM_LANG_CHANGED.
+   - OptionsBar_OnCommand() must be called from the dialog's WM_COMMAND handler;
+     it returns true if the command belonged to the bar. */
+void OptionsBar_Refresh(HWND hDlg);
+bool OptionsBar_OnCommand(HWND hDlg, WPARAM wParam);

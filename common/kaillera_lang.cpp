@@ -429,6 +429,7 @@ static const LangEntry g_defaultEntries[] = {
     {"STATUS_WAITING", "Waiting"},
     {"TAB_CONNECT", "Conn&ect"},
     {"TAB_HOST", "Ho&st"},
+    {"THEME_DARK", "Dark theme"},
     {"TIMESTAMP_AM", "AM"},
     {"TIMESTAMP_FORMAT", "[%d:%02d %s]"},
     {"TIMESTAMP_PM", "PM"},

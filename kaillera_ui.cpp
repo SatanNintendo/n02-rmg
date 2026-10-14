@@ -2262,7 +2262,7 @@ void ConnectToServer(char * ip, int port, HWND pDlg,char * name) {
                 //disconnect
                 KAILLERA_CORE_INITIALIZED = false;
                 char quitmsg[128];
-                wsprintf(quitmsg, "%s" KAILLERA_VERSION, LNG(QUIT_MSG));
+                wsprintf(quitmsg, "%s " KAILLERA_VERSION, LNG(QUIT_MSG)); // "Open Kaillera - n02 v0.10 (kaillera 0.9 compatible)"
                 // Frame delay field repurposed - use default quit message
                 kaillera_disconnect(quitmsg);
                 kaillera_core_cleanup();
@@ -2571,66 +2571,13 @@ void KLSListSave(){
 //---------------------------------------
 
 
-// The language combo stores a _strdup()ed file name as item data. It was only freed when the
-// list was rebuilt (WM_LANG_CHANGED) and leaked every time the About dialog was closed.
-static void AboutFreeLangComboData(HWND hCombo) {
-        if (hCombo == NULL)
-                return;
-        int count = (int)SendMessage(hCombo, CB_GETCOUNT, 0, 0);
-        for (int i = 0; i < count; i++) {
-                LPARAM data = SendMessage(hCombo, CB_GETITEMDATA, (WPARAM)i, 0);
-                if (data != CB_ERR && data != 0) {
-                        free((char*)data);
-                        SendMessage(hCombo, CB_SETITEMDATA, (WPARAM)i, 0);
-                }
-        }
-}
-
 LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
         case WM_INITDIALOG:
+                // Language selection and the dark theme check box now live in the
+                // main windows (P2P / Server / Playback).
                 ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
-                {
-                        /* Populate language combo as "NativeName / FileName", storing file names as item data */
-                        HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
-                        if (hCombo) {
-                                const char* currentLang = LangGetFile();
-                                struct LangEnumCtx {
-                                        HWND combo;
-                                        const char* current;
-                                        int selIdx;
-                                } ctx = { hCombo, currentLang, 0 };
-
-                                LangEnumerate([](const char* name, void* ud) {
-                                        LangEnumCtx* c = (LangEnumCtx*)ud;
-                                        const char* displayName = LangGetDisplayName(name);
-                                        /* Format: "NativeName / FileName" e.g. "Русский / Russian" */
-                                        char comboText[128];
-                                        if (strcmp(displayName, name) != 0) {
-                                                wsprintfA(comboText, "%s / %s", displayName, name);
-                                        } else {
-                                                wsprintfA(comboText, "%s", name);
-                                        }
-                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)comboText);
-                                        /* Store the file name as item data for lookup on selection */
-                                        char* nameCopy = _strdup(name);
-                                        SendMessage(c->combo, CB_SETITEMDATA, (WPARAM)idx, nameCopy ? (LPARAM)nameCopy : 0);
-                                        if (_stricmp(name, c->current) == 0) {
-                                                c->selIdx = idx;
-                                        }
-                                }, &ctx);
-
-                                SendMessage(hCombo, CB_SETCURSEL, (WPARAM)ctx.selIdx, 0);
-                        }
-                }
-                {
-                        HWND hDarkChk = CreateWindowA("BUTTON", LNG(THEME_DARK), WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, 130, 55, 50, 14, hDlg, (HMENU)IDC_DARK_THEME, hx, NULL);
-                        SendMessage(hDarkChk, BM_SETCHECK, g_dark_mode ? BST_CHECKED : BST_UNCHECKED, 0);
-                }
                 Theme_OnInitDialog(hDlg);
-                break;
-        case WM_DESTROY:
-                AboutFreeLangComboData(GetDlgItem(hDlg, IDC_LANG_COMBO));
                 break;
         case WM_CLOSE:
                 EndDialog(hDlg, 0);
@@ -2649,77 +2596,10 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                 case BTN_USEAGE:
                         ShellExecute(NULL, NULL, "http://p2p.kaillera.ru/", NULL, NULL, SW_SHOWNORMAL);
                         break;
-                case IDC_LANG_COMBO:
-                        if (HIWORD(wParam) == CBN_SELCHANGE) {
-                                HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
-                                int sel = (int)SendMessage(hCombo, CB_GETCURSEL, 0, 0);
-                                if (sel != CB_ERR) {
-                                        /* Retrieve the file name from item data */
-                                        LPARAM data = SendMessage(hCombo, CB_GETITEMDATA, (WPARAM)sel, 0);
-                                        if (data != CB_ERR && data != 0) {
-                                                const char* langFile = (const char*)data;
-                                                if (LangSetLanguage(langFile)) {
-                                                        /* Notify all windows to update their language */
-                                                        LangNotifyChanged();
-                                                }
-                                        }
-                                }
-                        }
-                        break;
-                case IDC_DARK_THEME:
-                        /* Theme_Toggle() broadcasts WM_THEME_CHANGED to all
-                         * open dialogs (including this one), which triggers
-                         * Theme_HandleThemeChanged() below — that re-applies
-                         * the dark title bar, control styles (owner-draw +
-                         * SetWindowTheme) and forces a repaint. No need to
-                         * invalidate / re-apply manually here. */
-                        Theme_Toggle();
-                        break;
                 };
                 break;
         case WM_LANG_CHANGED:
                 ApplyDialogLanguage(hDlg, KAILLERA_ABOUT);
-                {
-                        /* Rebuild the language combo with updated display names */
-                        HWND hCombo = GetDlgItem(hDlg, IDC_LANG_COMBO);
-                        if (hCombo) {
-                                /* Free old item data strings */
-                                int count = (int)SendMessage(hCombo, CB_GETCOUNT, 0, 0);
-                                for (int i = 0; i < count; i++) {
-                                        LPARAM data = SendMessage(hCombo, CB_GETITEMDATA, (WPARAM)i, 0);
-                                        if (data != CB_ERR && data != 0) {
-                                                free((char*)data);
-                                        }
-                                }
-
-                                SendMessage(hCombo, CB_RESETCONTENT, 0, 0);
-                                const char* currentLang = LangGetFile();
-                                struct LangEnumCtx {
-                                        HWND combo;
-                                        const char* current;
-                                        int selIdx;
-                                } ctx = { hCombo, currentLang, 0 };
-
-                                LangEnumerate([](const char* name, void* ud) {
-                                        LangEnumCtx* c = (LangEnumCtx*)ud;
-                                        const char* displayName = LangGetDisplayName(name);
-                                        char comboText[128];
-                                        if (strcmp(displayName, name) != 0) {
-                                                wsprintfA(comboText, "%s / %s", displayName, name);
-                                        } else {
-                                                wsprintfA(comboText, "%s", name);
-                                        }
-                                        int idx = (int)SendMessage(c->combo, CB_ADDSTRING, 0, (LPARAM)comboText);
-                                        char* nameCopy = _strdup(name);
-                                        SendMessage(c->combo, CB_SETITEMDATA, (WPARAM)idx, nameCopy ? (LPARAM)nameCopy : 0);
-                                        if (_stricmp(name, c->current) == 0) {
-                                                c->selIdx = idx;
-                                        }
-                                }, &ctx);
-
-                                SendMessage(hCombo, CB_SETCURSEL, (WPARAM)ctx.selIdx, 0);
-                        }
-                }
                 break;
         case WM_CTLCOLORDLG:
         case WM_CTLCOLORSTATIC:
@@ -2742,8 +2622,8 @@ LRESULT CALLBACK AboutDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPa
                         return TRUE;
                 break;
         case WM_THEME_CHANGED:
-                /* Live theme toggle — re-apply dark title bar, control
-                 * styles and repaint. Triggered by Theme_Toggle() above. */
+                /* Live theme toggle (from the main window) - re-apply dark title bar,
+                 * control styles and repaint. */
                 return Theme_HandleThemeChanged(hDlg);
         };
         return 0;
@@ -2975,6 +2855,10 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                         case RB_MODE_PLAYBACK:
                                 if (activate_mode(2))
                                         SendMessage(hDlg, WM_CLOSE, 0, 0);
+                                break;
+                        case IDC_LANG_COMBO:
+                        case IDC_DARK_THEME:
+                                OptionsBar_OnCommand(hDlg, wParam);
                                 break;
                 };
                 break;

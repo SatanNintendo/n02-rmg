@@ -1955,6 +1955,10 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                                 if (activate_mode(2))
                                         SendMessage(hDlg, WM_CLOSE, 0, 0);
                                 break;
+                        case IDC_LANG_COMBO:
+                        case IDC_DARK_THEME:
+                                OptionsBar_OnCommand(hDlg, wParam);
+                                break;
                         };
                         break;
         case WM_NOTIFY:

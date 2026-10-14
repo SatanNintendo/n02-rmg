@@ -8,7 +8,7 @@
 #ifdef GIT_REVISION
 #define N02_VER N02_TOSTRING(GIT_REVISION)
 #else
-#define N02_VER "dev"
+#define N02_VER "v0.10"
 #endif
 
 #define N02_COMP_VER "kaillera 0.9"

@@ -502,6 +502,12 @@ static void ShowColumnContextMenu(HWND hDlg) {
 
 static int lv_margin_left, lv_margin_top, lv_margin_right, lv_margin_bottom;
 
+// Options bar (language / dark theme) at the bottom of the window: distance of every
+// control's top edge from the bottom of the client area, measured at WM_INITDIALOG.
+static const int optbar_ids[3] = { IDC_LANG_LABEL, IDC_LANG_COMBO, IDC_DARK_THEME };
+static int optbar_bottom_gap[3];
+static bool optbar_gap_valid = false;
+
 static void ResizeListView(HWND hDlg) {
         RECT rc;
         GetClientRect(hDlg, &rc);
@@ -512,6 +518,20 @@ static void ResizeListView(HWND hDlg) {
         if (w < 50) w = 50;
         if (h < 50) h = 50;
         MoveWindow(RecordsListDlg_list.handle, x, y, w, h, TRUE);
+
+        if (optbar_gap_valid) {
+                for (int i = 0; i < 3; i++) {
+                        HWND c = GetDlgItem(hDlg, optbar_ids[i]);
+                        if (c == NULL)
+                                continue;
+                        RECT cr;
+                        GetWindowRect(c, &cr);
+                        POINT p = { cr.left, cr.top };
+                        ScreenToClient(hDlg, &p);
+                        SetWindowPos(c, NULL, p.x, rc.bottom - optbar_bottom_gap[i], 0, 0,
+                                SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+                }
+        }
 }
 
 LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -541,6 +561,20 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 lv_margin_top = lvPos.y;
                                 lv_margin_right = dlgRc.right - (lvPos.x + (lvRc.right - lvRc.left));
                                 lv_margin_bottom = dlgRc.bottom - (lvPos.y + (lvRc.bottom - lvRc.top));
+
+                                optbar_gap_valid = true;
+                                for (int i = 0; i < 3; i++) {
+                                        HWND c = GetDlgItem(hDlg, optbar_ids[i]);
+                                        if (c == NULL) {
+                                                optbar_gap_valid = false;
+                                                break;
+                                        }
+                                        RECT cr;
+                                        GetWindowRect(c, &cr);
+                                        POINT p = { cr.left, cr.top };
+                                        ScreenToClient(hDlg, &p);
+                                        optbar_bottom_gap[i] = dlgRc.bottom - p.y;
+                                }
                         }
 
                         // Restore saved window size
@@ -621,6 +655,10 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         SavePlaybackState(hDlg);
                         if (activate_mode(2))
                                 SendMessage(hDlg, WM_CLOSE, 0, 0);
+                        break;
+                case IDC_LANG_COMBO:
+                case IDC_DARK_THEME:
+                        OptionsBar_OnCommand(hDlg, wParam);
                         break;
                 };
                 break;

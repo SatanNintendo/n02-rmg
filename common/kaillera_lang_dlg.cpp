@@ -7,7 +7,10 @@
 
 #include "kaillera_lang_dlg.h"
 #include "../resource.h"
+#include "../n02_theme.h"
 #include <commctrl.h>
+#include <stdio.h>
+#include <string.h>
 
 /* Helper: set dialog item text if the control exists. Returns true if found. */
 static bool SetDlgText(HWND hDlg, int controlId, const char* text) {
@@ -69,6 +72,136 @@ static void ReplaceAllStaticText(HWND hDlg, const char* oldText, const char* new
     EnumChildWindows(hDlg, ReplaceAllStaticCallback, (LPARAM)&ctx);
 }
 
+/* ---------------------------------------------------------------------------
+ * Options bar (language + dark theme) of the main windows
+ * --------------------------------------------------------------------------- */
+#define OPTBAR_MAX_LANGS 32
+
+/* File names of the languages in the combo. The item data of a combo item is
+   the index into this table (no heap memory, nothing to free). */
+static char s_optLangFiles[OPTBAR_MAX_LANGS][64];
+
+/* Build the combo text "<native name> / <english name>", e.g. "Русский / Russian".
+   LANG_NAME in the .lng file already has exactly this form, so it is used as is
+   (the old code appended the file name once more: "Русский / Russian / Russian").
+   If a file has only a single name, the file name is appended; "X / X" is
+   collapsed to "X". */
+static void OptBarFormatLangText(const char* fileName, char* out, size_t outSize) {
+    const char* disp = LangGetDisplayName(fileName);
+    if (disp == NULL || disp[0] == 0)
+        disp = fileName;
+
+    char text[128];
+    strncpy_s(text, sizeof(text), disp, _TRUNCATE);
+
+    char* sep = strstr(text, " / ");
+    if (sep != NULL) {
+        /* already "native / english": collapse identical halves */
+        *sep = 0;
+        const char* second = sep + 3;
+        if (strcmp(text, second) == 0)
+            strncpy_s(out, outSize, text, _TRUNCATE);
+        else
+            _snprintf_s(out, outSize, _TRUNCATE, "%s / %s", text, second);
+    } else if (_stricmp(text, fileName) != 0) {
+        _snprintf_s(out, outSize, _TRUNCATE, "%s / %s", text, fileName);
+    } else {
+        strncpy_s(out, outSize, text, _TRUNCATE);
+    }
+}
+
+struct OptBarEnumCtx {
+    HWND combo;
+    const char* current;
+    int selIdx;
+    int count;
+};
+
+static void OptBarEnumCallback(const char* name, void* ud) {
+    OptBarEnumCtx* c = (OptBarEnumCtx*)ud;
+    if (name == NULL || c->count >= OPTBAR_MAX_LANGS)
+        return;
+    char text[160];
+    OptBarFormatLangText(name, text, sizeof(text));
+    int idx = (int)SendMessageA(c->combo, CB_ADDSTRING, 0, (LPARAM)text);
+    if (idx == CB_ERR)
+        return;
+    strncpy_s(s_optLangFiles[c->count], sizeof(s_optLangFiles[c->count]), name, _TRUNCATE);
+    SendMessageA(c->combo, CB_SETITEMDATA, (WPARAM)idx, (LPARAM)c->count);
+    if (_stricmp(name, c->current) == 0)
+        c->selIdx = idx;
+    c->count++;
+}
+
+void OptionsBar_Refresh(HWND hDlg) {
+    SetDlgText(hDlg, IDC_LANG_LABEL, LNG(ABOUT_LBL_LANGUAGE));
+    SetDlgText(hDlg, IDC_DARK_THEME, LNG(THEME_DARK));
+
+    HWND chk = GetDlgItem(hDlg, IDC_DARK_THEME);
+    if (chk != NULL)
+        SendMessage(chk, BM_SETCHECK, g_dark_mode ? BST_CHECKED : BST_UNCHECKED, 0);
+
+    HWND combo = GetDlgItem(hDlg, IDC_LANG_COMBO);
+    if (combo == NULL)
+        return;
+
+    const char* cur = LangGetFile();
+    if (cur == NULL)
+        cur = "";
+
+    if (SendMessage(combo, CB_GETCOUNT, 0, 0) == 0) {
+        OptBarEnumCtx ctx = { combo, cur, 0, 0 };
+        LangEnumerate(OptBarEnumCallback, &ctx);
+        SendMessage(combo, CB_SETCURSEL, (WPARAM)ctx.selIdx, 0);
+    } else {
+        /* The list of languages does not depend on the current language, so
+           only the selection has to follow (no rebuild while the combo is
+           still handling its own CBN_SELCHANGE). */
+        int count = (int)SendMessage(combo, CB_GETCOUNT, 0, 0);
+        for (int i = 0; i < count; i++) {
+            LRESULT data = SendMessage(combo, CB_GETITEMDATA, (WPARAM)i, 0);
+            if (data != CB_ERR && data >= 0 && data < OPTBAR_MAX_LANGS &&
+                _stricmp(s_optLangFiles[data], cur) == 0) {
+                SendMessage(combo, CB_SETCURSEL, (WPARAM)i, 0);
+                break;
+            }
+        }
+    }
+}
+
+bool OptionsBar_OnCommand(HWND hDlg, WPARAM wParam) {
+    switch (LOWORD(wParam)) {
+    case IDC_LANG_COMBO:
+        if (HIWORD(wParam) == CBN_SELCHANGE) {
+            HWND combo = GetDlgItem(hDlg, IDC_LANG_COMBO);
+            int sel = (int)SendMessage(combo, CB_GETCURSEL, 0, 0);
+            if (sel != CB_ERR) {
+                LRESULT data = SendMessage(combo, CB_GETITEMDATA, (WPARAM)sel, 0);
+                if (data != CB_ERR && data >= 0 && data < OPTBAR_MAX_LANGS &&
+                    s_optLangFiles[data][0] != 0) {
+                    char file[64];
+                    strncpy_s(file, sizeof(file), s_optLangFiles[data], _TRUNCATE);
+                    if (LangSetLanguage(file)) {
+                        /* every window (incl. this one) gets WM_LANG_CHANGED */
+                        LangNotifyChanged();
+                    }
+                }
+            }
+        }
+        return true;
+    case IDC_DARK_THEME:
+        if (HIWORD(wParam) == BN_CLICKED) {
+            /* broadcasts WM_THEME_CHANGED to the open dialogs */
+            Theme_Toggle();
+            HWND chk = GetDlgItem(hDlg, IDC_DARK_THEME);
+            if (chk != NULL)
+                SendMessage(chk, BM_SETCHECK, g_dark_mode ? BST_CHECKED : BST_UNCHECKED, 0);
+        }
+        return true;
+    }
+    return false;
+}
+
 void ApplyDialogLanguage(HWND hDlg, int dialogId) {
     switch (dialogId) {
 
@@ -91,6 +224,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         /* IDC_STATIC labels */
         ReplaceStaticText(hDlg, "Nick:", LNG(MAIN_LBL_NICK));
         ReplaceStaticText(hDlg, "Mode", LNG(MAIN_GRP_MODE));
+        OptionsBar_Refresh(hDlg);
         break;
 
     case KAILLERA_SSDLG:
@@ -135,6 +269,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
                 }
             }
         }
+        OptionsBar_Refresh(hDlg);
         break;
 
     case CONNECTION_DIALOG:
@@ -174,15 +309,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, BTN_OKAI, LNG(ABOUT_BTN_WEBSITE));
         SetDlgText(hDlg, BTN_USEAGE, LNG(ABOUT_BTN_USAGE_POLICY));
         SetDlgText(hDlg, BTN_LICENSE, LNG(ABOUT_BTN_LICENSE));
-        /* Language label - try by ID first, then by text search */
-        {
-            const char* langLabelText = LNG(ABOUT_LBL_LANGUAGE);
-            if (!SetDlgText(hDlg, IDC_LANG_LABEL, langLabelText)) {
-                /* Fallback: find the static text by content */
-                ReplaceAllStaticText(hDlg, "Language:", langLabelText);
-                ReplaceAllStaticText(hDlg, "Язык:", langLabelText);
-            }
-        }
+        /* (the language selection moved to the main windows) */
         /* About dialog static text labels */
         ReplaceStaticText(hDlg, "Kaillera protocol and API:\n(c) 2001-2002 Christophe Thibault\n------------------------------------------------------", LNG(ABOUT_LBL_CREDITS));
         ReplaceStaticText(hDlg, "n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera", LNG(ABOUT_LBL_N02));
@@ -353,6 +480,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, RB_MODE_PLAYBACK, LNG(PLAYER_RB_PLAYBACK));
         /* IDC_STATIC labels */
         ReplaceStaticText(hDlg, "Mode", LNG(PLAYER_GRP_MODE));
+        OptionsBar_Refresh(hDlg);
         break;
 
     case N02_ERRORDLG:
