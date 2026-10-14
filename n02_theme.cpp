@@ -292,6 +292,18 @@ void Theme_ApplyToListView(HWND hListView) {
          * (called from Theme_ApplyToDialogChildren for SysHeader32). */
 }
 
+/* Undo Theme_ApplyToListView(): back to the system window colors. Without this
+ * the list kept its dark background / text colors after the theme was switched
+ * back to light (it only became light again after restarting the client). */
+static void Theme_RestoreListViewLight(HWND hListView) {
+        if (hListView == NULL)
+                return;
+        ListView_SetBkColor(hListView, GetSysColor(COLOR_WINDOW));
+        ListView_SetTextColor(hListView, GetSysColor(COLOR_WINDOWTEXT));
+        ListView_SetTextBkColor(hListView, GetSysColor(COLOR_WINDOW));
+        InvalidateRect(hListView, NULL, TRUE);
+}
+
 void Theme_ApplyToRichEdit(HWND hRichEdit) {
         if (!g_dark_mode || hRichEdit == NULL)
                 return;
@@ -442,6 +454,11 @@ void Theme_ApplyToDialogChildren(HWND hDlg) {
                             IsScrollBarControl(child) ||
                             IsTabControl(child)) {
                                 SetWindowTheme(child, NULL, NULL);
+                        }
+
+                        /* ListView colors set in dark mode must be reset as well. */
+                        if (IsListViewControl(child)) {
+                                Theme_RestoreListViewLight(child);
                         }
 
                         /* The RichEdit background / text color set in dark mode
