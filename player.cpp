@@ -370,17 +370,17 @@ void RecordsList_Populate_fn(char * fn, int i) {
 
         // Col 4: Size (file size)
         if (len <= 1024) {
-                wsprintf(filename, "%i B", len);
+                wsprintf(filename, LNG(PLAYER_SIZE_B), len);
         }
         else {
                 len /= 1024;
                 if (len < 1000) {
-                        sprintf(filename, "%i kB", len);
+                        sprintf(filename, LNG(PLAYER_SIZE_KB), len);
                 }
                 else {
                         int mb = len / 1000;
                         int frc = (len % 1000) / 100;
-                        sprintf(filename, "%i.%i MB", mb, frc);
+                        sprintf(filename, LNG(PLAYER_SIZE_MB), mb, frc);
                 }
         }
         RecordsListDlg_list.FillRow(filename, 4, i);

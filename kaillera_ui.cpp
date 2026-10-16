@@ -1192,7 +1192,7 @@ void kaillera_game_netsync_wait_callback(int tx){
         int secs = tx / 1000;
         int ssecs = (tx % 1000) / 100;
         char xxx[32];
-        wsprintf(xxx,"%03i.%is", secs, ssecs);
+        wsprintf(xxx, LNG(NETSYNC_TIME_FORMAT), secs, ssecs);
         SetWindowText(kaillera_sdlg_ST_DELAY, xxx);
         kaillera_sdlg_delay = -1;
 }
@@ -1498,14 +1498,14 @@ bool reconn = false;
 void kaillera_ui_chat_send(char * text){
         if (*text == '/') {
                 if (strcmp(text, "/pcs")==0) {
-                        kaillera_core_debug("============= Core status begin ===============");
+                        kaillera_core_debug(LNG(CORE_STATUS_BEGIN));
                         kaillera_print_core_status();
                         unsigned int sta =  KSSDFA.state;
                         unsigned int inp = KSSDFA.input;
                         kaillera_core_debug("KSSDFA { state: %i, input: %i }", sta, inp);
                         kaillera_core_debug("PACKETLOSSCOUNT=%u", PACKETLOSSCOUNT);
                         kaillera_core_debug("PACKETMISOTDERCOUNT=%u", PACKETMISOTDERCOUNT);
-                        kaillera_core_debug("============ Core status end =================");
+                        kaillera_core_debug(LNG(CORE_STATUS_END));
                         return;
                 } else if (strcmp(text, "/swm")==0) {
                         if (kaillera_sdlg_MODE!=0)
@@ -1753,6 +1753,11 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                            Must be called AFTER columns are created so headers can be updated. */
                         ApplyDialogLanguage(hDlg, KAILLERA_SDLG);
 
+                        /* Initial texts of the speed/delay labels (the .rc has English placeholders).
+                           Done only here: later they hold live values from the timer. */
+                        SetWindowText(kaillera_sdlg_ST_SPEED, LNG(SDLG_LBL_SPEED));
+                        SetWindowText(kaillera_sdlg_ST_DELAY, LNG(SDLG_LBL_DELAY));
+
                         kaillera_sdlgNormalMode();
                         kaillera_sdlg_create_games_list_menu();
                         kaillera_core_connect(kaillera_sdlg_ip, kaillera_sdlg_port);
@@ -1958,7 +1963,7 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                                                         // Handle /halfdelay command locally
                                                         if (strcmp(buffrr, "/halfdelay") == 0) {
                                                                 kaillera_30fps_mode = !kaillera_30fps_mode;
-                                                                kaillera_core_debug("Half delay mode %s (for 30fps games: Mario Kart, 1080, THPS)", kaillera_30fps_mode ? "ENABLED" : "DISABLED");
+                                                                kaillera_core_debug(LNG(P2P_HALFDELAY_MSG), kaillera_30fps_mode ? LNG(P2P_HALFDELAY_ENABLED) : LNG(P2P_HALFDELAY_DISABLED));
                                                                 SetWindowText(kaillera_sdlg_TXT_GINP, "");
                                                                 break;
                                                         }
@@ -2039,6 +2044,8 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
         case WM_LANG_CHANGED:
                 {
                         ApplyDialogLanguage(hDlg, KAILLERA_SDLG);
+                        /* The delay label holds a localized "%i frames": make the timer rewrite it. */
+                        kaillera_sdlg_delay = -1;
                 }
                 break;
                         case WM_NOTIFY:
@@ -2326,7 +2333,7 @@ void KLSListRefreshStatus(){
                 int ping = kaillera_ping_server(host, port, 500);
                 char pingstr[32];
                 if (ping < 500)
-                        wsprintf(pingstr, "%ims", ping);
+                        wsprintf(pingstr, LNG(PING_MS_FORMAT), ping);
                 else
                         strcpy(pingstr, LNG(PING_NA));
                 KLSListLv.FillRow(pingstr, 2, x);
@@ -2432,7 +2439,7 @@ void KLSListPING(){
 
                 int ping = kaillera_ping_server(host, port);
                 char pingstr[128];
-                wsprintf(pingstr, "%ims", ping);
+                wsprintf(pingstr, LNG(PING_MS_FORMAT), ping);
                 KLSListLv.FillRow(pingstr, 2, i);  // Ping column
 
                 //CreateProcess(0, "cmd /k tracert", 0, 0, 0, 0, 0, 0, 0, 0);
@@ -2639,6 +2646,7 @@ void ShowAboutDialog(HWND hDlg) {
 LRESULT CALLBACK CustomIPDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
         switch (uMsg) {
                 case WM_INITDIALOG:
+                        ApplyDialogLanguage(hDlg, KAILLERA_CUSTOMIP);
                         Theme_OnInitDialog(hDlg);
                         break;
                 case WM_CLOSE:

@@ -597,3 +597,19 @@ N02_WINDOW_TITLE=N02 %s
 ; THEME
 ; ============================================================================
 THEME_DARK=Тёмная тема
+
+; ============================================================================
+; ADDITIONAL STRINGS (units, debug banners, NAT fallback reasons)
+; ============================================================================
+CORE_STATUS_BEGIN============== Состояние ядра: начало =============
+CORE_STATUS_END============= Состояние ядра: конец =============
+NETSYNC_TIME_FORMAT=%03i.%iс
+P2P_NAT_REASON_CONNECT_FAILED=ошибка подключения
+P2P_NAT_REASON_TIMED_OUT=время ожидания истекло
+P2P_NAT_REASON_TRY_DIRECT=пробуем прямой IP/порт
+PING_MS_FORMAT=%iмс
+PING_OVER_LIMIT=1000мс+
+PLAYER_SIZE_B=%i Б
+PLAYER_SIZE_KB=%i КБ
+PLAYER_SIZE_MB=%i.%i МБ
+STATS_DEFAULT_IPM=ipm по умолчанию изменён на %i

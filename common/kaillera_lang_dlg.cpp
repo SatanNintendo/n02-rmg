@@ -34,7 +34,50 @@ struct FindStaticCtx {
     const char* oldText;
     const char* newText;
     bool found;
+    int tagId;   /* if != 0: synthetic control ID given to the matched label */
 };
+
+/* ---------------------------------------------------------------------------
+ * Stable identification of IDC_STATIC labels
+ *
+ * All IDC_STATIC labels share the control ID -1, so they are located by their
+ * *current* text, i.e. the English text from the .rc file. That works only
+ * once: after the first translation the control no longer contains the English
+ * text, so a later live language switch (e.g. Russian -> English) could not
+ * find the label any more and left it in the previous language.
+ *
+ * To fix this, the first time a label is found by its English text it gets a
+ * synthetic control ID (STATIC_LABEL_ID_BASE + index in s_staticLabelKeys).
+ * Later calls find it directly with GetDlgItem(). The IDs are far above every
+ * ID in resource.h, and nothing refers to the IDC_STATIC (-1) of these labels.
+ * --------------------------------------------------------------------------- */
+#define STATIC_LABEL_ID_BASE 0x7E00
+
+static const char* const s_staticLabelKeys[] = {
+    "Nick:",
+    "Mode",
+    "Local List",
+    "Frame Delay:",
+    "Name:",
+    "IP:",
+    "Join msg:",
+    "Max players:",
+    "Max ping:",
+    "On user join:",
+    "Window flash:",
+    "Beep:",
+    "Kaillera protocol and API:\n(c) 2001-2002 Christophe Thibault\n------------------------------------------------------",
+    "n02 (c) Open Kaillera\nn02.p2p (c) Open Kaillera"
+};
+static const int s_staticLabelKeyCount = (int)(sizeof(s_staticLabelKeys) / sizeof(s_staticLabelKeys[0]));
+
+static int FindStaticLabelIndex(const char* oldText) {
+    for (int i = 0; i < s_staticLabelKeyCount; i++) {
+        if (strcmp(s_staticLabelKeys[i], oldText) == 0)
+            return i;
+    }
+    return -1;
+}
 
 static BOOL CALLBACK FindStaticCallback(HWND hwnd, LPARAM lParam) {
     FindStaticCtx* ctx = (FindStaticCtx*)lParam;
@@ -43,6 +86,8 @@ static BOOL CALLBACK FindStaticCallback(HWND hwnd, LPARAM lParam) {
     GetWindowTextA(hwnd, buf, sizeof(buf));
     if (strcmp(buf, ctx->oldText) == 0) {
         SetWindowTextA(hwnd, ctx->newText);
+        if (ctx->tagId != 0)
+            SetWindowLongPtr(hwnd, GWLP_ID, (LONG_PTR)ctx->tagId);
         ctx->found = true;
         return FALSE; /* stop enumerating */
     }
@@ -50,7 +95,19 @@ static BOOL CALLBACK FindStaticCallback(HWND hwnd, LPARAM lParam) {
 }
 
 static void ReplaceStaticText(HWND hDlg, const char* oldText, const char* newText) {
-    FindStaticCtx ctx = { oldText, newText, false };
+    int tagId = 0;
+    int idx = FindStaticLabelIndex(oldText);
+    if (idx >= 0) {
+        tagId = STATIC_LABEL_ID_BASE + idx;
+        /* Already tagged by an earlier call (language was applied before):
+           find it by its ID, its text is no longer the English one. */
+        HWND tagged = GetDlgItem(hDlg, tagId);
+        if (tagged != NULL) {
+            SetWindowTextA(tagged, newText);
+            return;
+        }
+    }
+    FindStaticCtx ctx = { oldText, newText, false, tagId };
     EnumChildWindows(hDlg, FindStaticCallback, (LPARAM)&ctx);
 }
 
@@ -239,6 +296,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgText(hDlg, BTN_PING, LNG(BTN_PING));
         SetDlgText(hDlg, BTN_TRACE, LNG(BTN_TRACE));
         SetDlgText(hDlg, BTN_ABOUT, LNG(BTN_ABOUT));
+        SetDlgText(hDlg, IDC_BUTTON3, LNG(BTN_OPTIONS)); /* hidden + disabled in the .rc */
         SetDlgText(hDlg, RB_MODE_P2P, LNG(MAIN_RB_P2P));
         SetDlgText(hDlg, RB_MODE_CLIENT, LNG(MAIN_RB_SERVER));
         SetDlgText(hDlg, RB_MODE_PLAYBACK, LNG(MAIN_RB_PLAYBACK));
@@ -319,7 +377,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
         SetDlgCaption(hDlg, LNG(CAPTION_CUSTOM_IP));
         SetDlgText(hDlg, BTN_CONNECT, LNG(CUSTOMIP_BTN_CONNECT));
         /* IDC_STATIC labels */
-        ReplaceStaticText(hDlg, "IP:", LNG(ITEMEDIT_LBL_IP));
+        ReplaceStaticText(hDlg, "IP:", LNG(CUSTOMIP_LBL_IP));
         break;
 
     case KAILLERA_MLIST:

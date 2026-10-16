@@ -694,7 +694,7 @@ static void p2p_try_apply_clipboard_connect(HWND hDlg) {
 
 void p2p_ui_pcs(){
         
-        outpf("============= Core status begin ===============");
+        outpf(LNG(CORE_STATUS_BEGIN));
 
         p2p_print_core_status();
 
@@ -703,7 +703,7 @@ void p2p_ui_pcs(){
         outpf("KSSDFA { state: %i, input: %i }", sta, inp);
         //outpf("PACKETLOSSCOUNT=%u", PACKETLOSSCOUNT);
         //outpf("PACKETMISOTDERCOUNT=%u", PACKETMISOTDERCOUNT);
-        outpf("============ Core status end =================");
+        outpf(LNG(CORE_STATUS_END));
         
 }
 
@@ -920,10 +920,10 @@ void p2p_ssrv_packet_recv_callback(char *cmd, int len, void *sadr){
                                         p2p_trav_punch_endpoint(g_p2p_trav_join_host_ip, g_p2p_trav_join_host_port, g_p2p_trav_join_token);
                                         if (!p2p_core_connect(g_p2p_trav_join_host_ip, g_p2p_trav_join_host_port)) {
                                                 outpf(LNG(P2P_NAT_CONNECT_ERROR), g_p2p_trav_join_host_ip, g_p2p_trav_join_host_port);
-                                                p2p_trav_try_fallback_connect("connect failed");
+                                                p2p_trav_try_fallback_connect(LNG(P2P_NAT_REASON_CONNECT_FAILED));
                                         }
                                         if (g_p2p_trav_join_punch_attempts >= 3) {
-                                                p2p_trav_try_fallback_connect("trying direct IP/port");
+                                                p2p_trav_try_fallback_connect(LNG(P2P_NAT_REASON_TRY_DIRECT));
                                         }
 
                                         return;
@@ -1347,7 +1347,7 @@ LRESULT CALLBACK ConnectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                                                 }
                                                 g_p2p_trav_join_enabled = false;
                                                 if (!g_p2p_trav_join_busy) {
-                                                        p2p_trav_try_fallback_connect("timed out");
+                                                        p2p_trav_try_fallback_connect(LNG(P2P_NAT_REASON_TIMED_OUT));
                                                 }
                                                 g_p2p_trav_join_busy = false;
                                         } else if (!g_p2p_trav_join_got_host) {
@@ -1364,7 +1364,7 @@ LRESULT CALLBACK ConnectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
                                                         p2p_core_connect(g_p2p_trav_join_host_ip, g_p2p_trav_join_host_port);
                                                         g_p2p_trav_next_connect_ms = now + 1000;
                                                         if (g_p2p_trav_join_punch_attempts >= 3) {
-                                                                p2p_trav_try_fallback_connect("trying direct IP/port");
+                                                                p2p_trav_try_fallback_connect(LNG(P2P_NAT_REASON_TRY_DIRECT));
                                                         }
                                                 }
                                         }

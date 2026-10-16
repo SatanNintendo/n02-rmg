@@ -304,9 +304,9 @@ public:
                                                 char * location = loca;
                                                 while(*++loca!=0){}*loca++ = 0;
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 1, x);
-                                                char xxxj[20] = "1000ms+";
+                                                char xxxj[20]; lstrcpyn(xxxj, LNG(PING_OVER_LIMIT), sizeof(xxxj));
                                                 if (ping != -1)
-                                                        wsprintf(xxxj, "%ims", ping);
+                                                        wsprintf(xxxj, LNG(PING_MS_FORMAT), ping);
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 2, x);
                                                 total++;
                                         }
@@ -344,9 +344,9 @@ public:
                                                 char * location = loca;
                                                 while(*++loca!=0){}*loca++ = 0;
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 1, x);
-                                                char xxxj[20] = "1000ms+";
+                                                char xxxj[20]; lstrcpyn(xxxj, LNG(PING_OVER_LIMIT), sizeof(xxxj));
                                                 if (ping != -1)
-                                                        wsprintf(xxxj, "%ims", ping);
+                                                        wsprintf(xxxj, LNG(PING_MS_FORMAT), ping);
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 2, x);
                                                 total++;
                                         }
@@ -501,7 +501,7 @@ public:
                                                 while(*++loca!=0){}*loca++ = 0;
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 6, x);
                                                 char xxxj[20];
-                                                wsprintf(xxxj, "%ims", ping);
+                                                wsprintf(xxxj, LNG(PING_MS_FORMAT), ping);
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
                                                 total++;
                                         }
@@ -545,7 +545,7 @@ public:
                                                 while(*++loca!=0){}*loca++ = 0;
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(location, 6, x);
                                                 char xxxj[20];
-                                                wsprintf(xxxj, "%ims", ping);
+                                                wsprintf(xxxj, LNG(PING_MS_FORMAT), ping);
                                                 x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
                                                 total++;
                                         }
@@ -1065,7 +1065,7 @@ public:
                                                         x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(code_buf, 5, x);
                                                         
                                                         char xxxj[20];
-                                                        wsprintf(xxxj, "%ims", ping);
+                                                        wsprintf(xxxj, LNG(PING_MS_FORMAT), ping);
                                                         x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
                                                         
                                                         total++;
@@ -1126,7 +1126,7 @@ public:
                                                         x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(host, 4, x);
                                                         x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(code_buf, 5, x);
                                                         char xxxj[20];
-                                                        wsprintf(xxxj, "%ims", ping);
+                                                        wsprintf(xxxj, LNG(PING_MS_FORMAT), ping);
                                                         x = kaillera_mlv.Find((LPARAM)name); kaillera_mlv.FillRow(xxxj, 3, x);
                                                         total++;
                                                 }

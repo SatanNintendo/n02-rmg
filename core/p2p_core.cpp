@@ -989,7 +989,7 @@ int p2p_modify_play_values(void *values, int size){
                 //kprintf(__FILE__ ":%i, %i", __LINE__, p2p_GetTime());
                 
                 P2PCORE.connection->default_ipm = max(2, min(P2PCORE.throughput + 1, 8));
-                StatsAppendLine("default ipm changed to %i", P2PCORE.connection->default_ipm);
+                StatsAppendLine(LNG(STATS_DEFAULT_IPM), P2PCORE.connection->default_ipm);
 
                 int tl = start_time - p2p_GetTime();
                 //kprintf("time left %i ms", tl);

@@ -597,3 +597,19 @@ N02_WINDOW_TITLE=N02 %s
 ; THEME
 ; ============================================================================
 THEME_DARK=Dark theme
+
+; ============================================================================
+; ADDITIONAL STRINGS (units, debug banners, NAT fallback reasons)
+; ============================================================================
+CORE_STATUS_BEGIN============== Core status begin ===============
+CORE_STATUS_END============= Core status end =================
+NETSYNC_TIME_FORMAT=%03i.%is
+P2P_NAT_REASON_CONNECT_FAILED=connect failed
+P2P_NAT_REASON_TIMED_OUT=timed out
+P2P_NAT_REASON_TRY_DIRECT=trying direct IP/port
+PING_MS_FORMAT=%ims
+PING_OVER_LIMIT=1000ms+
+PLAYER_SIZE_B=%i B
+PLAYER_SIZE_KB=%i kB
+PLAYER_SIZE_MB=%i.%i MB
+STATS_DEFAULT_IPM=default ipm changed to %i
