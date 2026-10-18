@@ -204,6 +204,7 @@ STATUS_WAITING=Waiting
 ; COLUMN HEADERS - Users List
 ; ============================================================================
 COL_NAME=Name
+COL_USERLIST_NICK=Name
 COL_SERVER_NAME=Name
 COL_PING=Ping
 COL_UID=UID
