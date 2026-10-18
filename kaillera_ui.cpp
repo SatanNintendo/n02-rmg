@@ -149,7 +149,7 @@ void InitStatusStrings() {
     strncpy_s(s_lobby_away, LNG(LOBBY_AWAY), _TRUNCATE);
     strncpy_s(s_lobby_chat, LNG(LOBBY_CHAT), _TRUNCATE);
 
-    g_users_column_menu[0].title = (char*)LNG(COL_NAME);
+    g_users_column_menu[0].title = (char*)LNG(COL_USERLIST_NICK);
     g_users_column_menu[1].title = (char*)LNG(COL_PING);
     g_users_column_menu[2].title = (char*)LNG(COL_UID);
     g_users_column_menu[3].title = (char*)LNG(COL_STATUS);
@@ -1695,7 +1695,7 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         }
                         kaillera_sdlg_userslv.handle = GetDlgItem(hDlg, LV_ULIST);
                         kaillera_sdlg_userslv.initialize();
-                        kaillera_sdlg_userslv.AddColumn(LNG(COL_NAME), 105);
+                        kaillera_sdlg_userslv.AddColumn(LNG(COL_USERLIST_NICK), 105);
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_PING), 44);
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_UID), 50);
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_STATUS), 85);
