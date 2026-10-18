@@ -101,9 +101,9 @@ struct KailleraColumnMenuItem {
 };
 
 static KailleraColumnMenuItem g_users_column_menu[] = {
-        { MENU_ID_USERS_COL_BASE + 0, "", 80 },
-        { MENU_ID_USERS_COL_BASE + 1, "", 35 },
-        { MENU_ID_USERS_COL_BASE + 2, "", 44 },
+        { MENU_ID_USERS_COL_BASE + 0, "", 105 },
+        { MENU_ID_USERS_COL_BASE + 1, "", 44 },
+        { MENU_ID_USERS_COL_BASE + 2, "", 50 },
         { MENU_ID_USERS_COL_BASE + 3, "", 85 },
         { MENU_ID_USERS_COL_BASE + 4, "", 55 },
 };
@@ -116,17 +116,17 @@ static KailleraColumnMenuItem g_lobby_column_menu[] = {
 };
 
 static KailleraColumnMenuItem g_games_column_menu[] = {
-        { MENU_ID_GAMES_COL_BASE + 0, "", 285 },
-        { MENU_ID_GAMES_COL_BASE + 1, "", 60 },
-        { MENU_ID_GAMES_COL_BASE + 2, "", 130 },
-        { MENU_ID_GAMES_COL_BASE + 3, "", 150 },
-        { MENU_ID_GAMES_COL_BASE + 4, "", 50 },
-        { MENU_ID_GAMES_COL_BASE + 5, "", 45 },
+        { MENU_ID_GAMES_COL_BASE + 0, "", 369 },
+        { MENU_ID_GAMES_COL_BASE + 1, "", 69 },
+        { MENU_ID_GAMES_COL_BASE + 2, "", 141 },
+        { MENU_ID_GAMES_COL_BASE + 3, "", 112 },
+        { MENU_ID_GAMES_COL_BASE + 4, "", 98 },
+        { MENU_ID_GAMES_COL_BASE + 5, "", 60 },
 };
 
-static int g_users_column_restore_widths[5] = { 80, 35, 44, 85, 55 };
+static int g_users_column_restore_widths[5] = { 105, 44, 50, 85, 55 };
 static int g_lobby_column_restore_widths[4] = { 100, 60, 60, 120 };
-static int g_games_column_restore_widths[6] = { 285, 60, 130, 150, 50, 45 };
+static int g_games_column_restore_widths[6] = { 369, 69, 141, 112, 98, 60 };
 static const int KAILLERA_MIN_COLUMN_WIDTH = 16;
 static bool g_kaillera_allow_zero_width_columns = false;
 static bool g_hidden_column_track_active = false;
@@ -1695,9 +1695,9 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
                         }
                         kaillera_sdlg_userslv.handle = GetDlgItem(hDlg, LV_ULIST);
                         kaillera_sdlg_userslv.initialize();
-                        kaillera_sdlg_userslv.AddColumn(LNG(COL_NAME), 80);
-                        kaillera_sdlg_userslv.AddColumn(LNG(COL_PING), 35);
-                        kaillera_sdlg_userslv.AddColumn(LNG(COL_UID), 44);
+                        kaillera_sdlg_userslv.AddColumn(LNG(COL_NAME), 105);
+                        kaillera_sdlg_userslv.AddColumn(LNG(COL_PING), 44);
+                        kaillera_sdlg_userslv.AddColumn(LNG(COL_UID), 50);
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_STATUS), 85);
                         kaillera_sdlg_userslv.AddColumn(LNG(COL_CONNECTION), 0);
                         kaillera_sdlg_userslv.FullRowSelect();
@@ -1706,12 +1706,12 @@ LRESULT CALLBACK KailleraServerDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
 
                         kaillera_sdlg_gameslv.handle = GetDlgItem(hDlg, LV_GLIST);
                         kaillera_sdlg_gameslv.initialize();
-                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_GAME), 285);
-                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_GAME_ID), 60);
-                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_EMULATOR), 130);
-                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_USER), 150);
-                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_STATUS), 50);
-                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_USERS), 45);
+                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_GAME), 369);
+                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_GAME_ID), 69);
+                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_EMULATOR), 141);
+                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_USER), 112);
+                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_STATUS), 98);
+                        kaillera_sdlg_gameslv.AddColumn(LNG(COL_USERS), 60);
                         kaillera_sdlg_gameslv.FullRowSelect();
                         kaillera_sdlg_gameslvColumn = 4;
                         kaillera_sdlg_gameslvColumnOrder[4] = 5;
