@@ -464,7 +464,7 @@ void ApplyDialogLanguage(HWND hDlg, int dialogId) {
                     LVCOLUMNA lvc;
                     lvc.mask = LVCF_TEXT;
                     lvc.iSubItem = 0;
-                    lvc.pszText = const_cast<LPSTR>(LNG(COL_NAME));
+                    lvc.pszText = const_cast<LPSTR>(LNG(COL_USERLIST_NICK));
                     ListView_SetColumn(hLv, 0, &lvc);
                     lvc.iSubItem = 1;
                     lvc.pszText = const_cast<LPSTR>(LNG(COL_PING));

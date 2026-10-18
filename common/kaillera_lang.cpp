@@ -157,6 +157,7 @@ static const LangEntry g_defaultEntries[] = {
     {"COL_STATUS", "Status"},
     {"COL_UID", "UID"},
     {"COL_USER", "User"},
+    {"COL_USERLIST_NICK", "Name"},
     {"COL_USERS", "Users"},
     {"COL_VER", "ver"},
     {"COL_WAITING", "Waiting"},
