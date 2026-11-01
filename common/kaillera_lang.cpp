@@ -749,6 +749,36 @@ void LangShutdown() {
     LangCleanup();
 }
 
+/* ---------------------------------------------------------------------------
+ * Built-in Russian fallback for a few keys. A Russian.lng that sits next to the
+ * DLL may be older than the program (these keys missing); without this the user
+ * would see the English text. Used only when the loaded language file is
+ * "Russian" and does not define the key. Text is kept as \u escapes so it does
+ * not depend on the source file encoding, and converted to the ANSI codepage
+ * exactly like the strings loaded from the .lng file.
+ * --------------------------------------------------------------------------- */
+struct RuFallbackEntry { const char* key; const wchar_t* text; };
+static const RuFallbackEntry g_ruFallback[] = {
+    {"COL_USERLIST_NICK", L"\u041d\u0438\u043a"},
+    {"OPT_SAVE_WINDOW_LAYOUT", L"\u0421\u043e\u0445\u0440\u0430\u043d\u044f\u0442\u044c \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c\u0441\u043a\u0438\u0435 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b \u043e\u043a\u043e\u043d"},
+};
+
+static const char* LangGetRussianFallback(const char* key) {
+    if (_stricmp(g_lang.langFile, "Russian") != 0)
+        return NULL;
+    static char cache[2][192];
+    for (int i = 0; i < (int)(sizeof(g_ruFallback) / sizeof(g_ruFallback[0])); i++) {
+        if (strcmp(g_ruFallback[i].key, key) != 0)
+            continue;
+        if (cache[i][0] == 0) {
+            WideCharToMultiByte(CP_ACP, 0, g_ruFallback[i].text, -1,
+                                cache[i], (int)sizeof(cache[i]) - 1, NULL, NULL);
+        }
+        return cache[i][0] ? cache[i] : NULL;
+    }
+    return NULL;
+}
+
 const char* LangGet(const char* key) {
     if (key == NULL) return "";
 
@@ -781,7 +811,12 @@ const char* LangGet(const char* key) {
         }
     }
 
-    /* Fallback: search built-in English defaults */
+    /* Fallback: built-in Russian text (stale Russian.lng), then English defaults */
+    const char* ruVal = LangGetRussianFallback(key);
+    if (ruVal != NULL) {
+        return ruVal;
+    }
+
     const char* defVal = LangGetDefault(key);
     if (defVal != NULL) {
         return defVal;

@@ -2251,7 +2251,7 @@ void ConnectToServer(char * ip, int port, HWND pDlg,char * name) {
                 //disconnect
                 KAILLERA_CORE_INITIALIZED = false;
                 char quitmsg[128];
-                lstrcpyn(quitmsg, N02_VER_FULL, sizeof(quitmsg)); // "N02 v0.10"
+                wsprintf(quitmsg, "%s " KAILLERA_VERSION, LNG(QUIT_MSG)); // "Open Kaillera - n02 v0.10 (kaillera 0.9 compatible)"
                 // Frame delay field repurposed - use default quit message
                 kaillera_disconnect(quitmsg);
                 kaillera_core_cleanup();

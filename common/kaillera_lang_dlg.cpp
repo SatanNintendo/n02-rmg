@@ -9,6 +9,7 @@
 #include "../resource.h"
 #include "../n02_theme.h"
 #include "../n02_layout.h"
+#include "../kcore/kaillera_core.h"   /* N02_VER_FULL */
 #include <commctrl.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +26,10 @@ static bool SetDlgText(HWND hDlg, int controlId, const char* text) {
 
 /* Helper: set dialog caption */
 static void SetDlgCaption(HWND hDlg, const char* text) {
+    /* The language files only say "N02" for the main captions; the client
+       version is appended here so the title always reads "N02 v0.10". */
+    if (text != NULL && _stricmp(text, "N02") == 0)
+        text = N02_VER_FULL;
     SetWindowTextA(hDlg, text);
 }
 
