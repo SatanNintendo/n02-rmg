@@ -9,6 +9,7 @@
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
 #include "n02_theme.h"
+#include "n02_layout.h"
 
 static void UpdateModeRadioButtons(HWND hDlg){
         int mode = get_active_mode_index();
@@ -463,15 +464,12 @@ static void SavePlaybackState(HWND hDlg) {
         for (int i = 0; i < PB_NUM_COLS; i++) {
                 int w = ListView_GetColumnWidth(RecordsListDlg_list.handle, i);
                 if (w > 0) {
-                        nSettings::set_int((char*)colKeys[i], w);
+                        Layout_SetInt(colKeys[i], w);   /* no-op unless "save window settings" is on */
                         col_saved_width[i] = w;
                 }
-                nSettings::set_int((char*)colVisKeys[i], col_visible[i] ? 1 : 0);
+                Layout_SetInt(colVisKeys[i], col_visible[i] ? 1 : 0);
         }
-        RECT rc;
-        GetWindowRect(hDlg, &rc);
-        nSettings::set_int((char*)"PBWinW", rc.right - rc.left);
-        nSettings::set_int((char*)"PBWinH", rc.bottom - rc.top);
+        Layout_SaveWindow(hDlg, "PBWin_");
 }
 
 static void ShowColumnContextMenu(HWND hDlg) {
@@ -504,8 +502,9 @@ static int lv_margin_left, lv_margin_top, lv_margin_right, lv_margin_bottom;
 
 // Options bar (language / dark theme) at the bottom of the window: distance of every
 // control's top edge from the bottom of the client area, measured at WM_INITDIALOG.
-static const int optbar_ids[3] = { IDC_LANG_LABEL, IDC_LANG_COMBO, IDC_DARK_THEME };
-static int optbar_bottom_gap[3];
+#define OPTBAR_COUNT 4
+static const int optbar_ids[OPTBAR_COUNT] = { IDC_LANG_LABEL, IDC_LANG_COMBO, IDC_DARK_THEME, IDC_SAVE_LAYOUT };
+static int optbar_bottom_gap[OPTBAR_COUNT];
 static bool optbar_gap_valid = false;
 
 static void ResizeListView(HWND hDlg) {
@@ -520,7 +519,7 @@ static void ResizeListView(HWND hDlg) {
         MoveWindow(RecordsListDlg_list.handle, x, y, w, h, TRUE);
 
         if (optbar_gap_valid) {
-                for (int i = 0; i < 3; i++) {
+                for (int i = 0; i < OPTBAR_COUNT; i++) {
                         HWND c = GetDlgItem(hDlg, optbar_ids[i]);
                         if (c == NULL)
                                 continue;
@@ -563,7 +562,7 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 lv_margin_bottom = dlgRc.bottom - (lvPos.y + (lvRc.bottom - lvRc.top));
 
                                 optbar_gap_valid = true;
-                                for (int i = 0; i < 3; i++) {
+                                for (int i = 0; i < OPTBAR_COUNT; i++) {
                                         HWND c = GetDlgItem(hDlg, optbar_ids[i]);
                                         if (c == NULL) {
                                                 optbar_gap_valid = false;
@@ -577,19 +576,10 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 }
                         }
 
-                        // Restore saved window size
-                        {
-                                int w = nSettings::get_int((char*)"PBWinW", 0);
-                                int h = nSettings::get_int((char*)"PBWinH", 0);
-                                if (w > 200 && h > 150) {
-                                        SetWindowPos(hDlg, NULL, 0, 0, w, h, SWP_NOMOVE | SWP_NOZORDER);
-                                        ResizeListView(hDlg);
-                                }
-                        }
-
                         for (int i = 0; i < PB_NUM_COLS; i++) {
-                                col_visible[i] = nSettings::get_int((char*)colVisKeys[i], 1) != 0;
-                                col_saved_width[i] = nSettings::get_int((char*)colKeys[i], colDefaults[i]);
+                                /* Layout_GetInt returns the default while "save window settings" is off */
+                                col_visible[i] = Layout_GetInt(colVisKeys[i], 1) != 0;
+                                col_saved_width[i] = Layout_GetInt(colKeys[i], colDefaults[i]);
                                 if (col_saved_width[i] < 20) col_saved_width[i] = colDefaults[i];
                                 int w = col_visible[i] ? col_saved_width[i] : 0;
                                 RecordsListDlg_list.AddColumn((char*)colNames[i], w);
@@ -605,6 +595,9 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
                         UpdateModeRadioButtons(hDlg);
 
+                        // Restore saved window position/size (only if "save window settings" is on)
+                        if (Layout_RestoreWindow(hDlg, "PBWin_"))
+                                ResizeListView(hDlg);
                 }
                 Theme_OnInitDialog(hDlg);
                 break;
@@ -658,6 +651,7 @@ LRESULT CALLBACK RecordsListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                         break;
                 case IDC_LANG_COMBO:
                 case IDC_DARK_THEME:
+                case IDC_SAVE_LAYOUT:
                         OptionsBar_OnCommand(hDlg, wParam);
                         break;
                 };

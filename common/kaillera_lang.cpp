@@ -303,6 +303,7 @@ static const LangEntry g_defaultEntries[] = {
     {"OPTS_LBL_ON_USER_JOIN", "On user join:"},
     {"OPTS_LBL_WINDOW_FLASH", "Window flash:"},
     {"OPT_FALSE", "False"},
+    {"OPT_SAVE_WINDOW_LAYOUT", "Save custom window settings"},
     {"OPT_TRUE", "True"},
     {"P2P_30FPS_HALVED", "30fps mode: halved delay from %i to %i frames"},
     {"P2P_BOTH_READY", "both players are ready, starting game"},

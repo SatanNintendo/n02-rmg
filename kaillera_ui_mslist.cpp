@@ -18,6 +18,7 @@
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
 #include "n02_theme.h"
+#include "n02_layout.h"
 
 
 void ConnectToServer(char * ip, int port, HWND pDlg, char*name);
@@ -688,6 +689,7 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
                         kaillera_mlv.AddColumn(LNG(COL_LOCATION), 80);
                         kaillera_mlv.AddColumn(LNG(COL_IP), 90);
                         kaillera_mlv.FullRowSelect();
+                        Layout_RestoreColumns(kaillera_mlv.handle, "MSLW_COL_", 8, 20);
                         /* Apply language to all controls including ListView column headers.
                            Must be called AFTER columns are created so headers can be updated. */
                         ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
@@ -702,6 +704,9 @@ LRESULT CALLBACK MasterWGLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
                         Theme_OnInitDialog(hDlg);
 
+                        break;
+                case WM_DESTROY:
+                        Layout_SaveColumns(GetDlgItem(hDlg, LV_SLIST), "MSLW_COL_", 8);
                         break;
                 case WM_CLOSE:
                         wg_refresher_thread.eend();
@@ -775,14 +780,19 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
                                 kaillera_mslistColumnTypes[i] = 1;
                                 kaillera_mslistColumnOrder[i] = 0;
                         }
-                        kaillera_mlv.AddColumn(LNG(COL_SERVER_NAME), 180);
-                        kaillera_mlv.AddColumn(LNG(COL_LOCATION), 140);
-                        kaillera_mlv.AddColumn(LNG(COL_PING), 60);
-                        kaillera_mlv.AddColumn(LNG(COL_USERS), 50);
-                        kaillera_mlv.AddColumn(LNG(COL_GAME), 50);
-                        kaillera_mlv.AddColumn(LNG(COL_VER), 40);
-                        kaillera_mlv.AddColumn(LNG(COL_IP), 120);
+                        /* Default column widths (pixels) = the layout of the reference
+                           screenshot (100% DPI): 204+136+68+61+56+84+142 = 751 px, which
+                           fits the list (776 px wide) together with the vertical scrollbar. */
+                        kaillera_mlv.AddColumn(LNG(COL_SERVER_NAME), 204);
+                        kaillera_mlv.AddColumn(LNG(COL_LOCATION), 136);
+                        kaillera_mlv.AddColumn(LNG(COL_PING), 68);
+                        kaillera_mlv.AddColumn(LNG(COL_USERS), 61);
+                        kaillera_mlv.AddColumn(LNG(COL_GAME), 56);
+                        kaillera_mlv.AddColumn(LNG(COL_VER), 84);
+                        kaillera_mlv.AddColumn(LNG(COL_IP), 142);
                         kaillera_mlv.FullRowSelect();
+                        /* "Save custom window settings" on: the widths the user left last time. */
+                        Layout_RestoreColumns(kaillera_mlv.handle, "MSL_COL_", 7, 20);
                         /* Apply language to all controls including ListView column headers.
                            Must be called AFTER columns are created so headers can be updated. */
                         ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
@@ -793,6 +803,9 @@ LRESULT CALLBACK MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
                         Theme_OnInitDialog(hDlg);
 
+                        break;
+                case WM_DESTROY:
+                        Layout_SaveColumns(GetDlgItem(hDlg, LV_SLIST), "MSL_COL_", 7);
                         break;
                 case WM_CLOSE:
                         {
@@ -1205,6 +1218,7 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                         kaillera_mlv.AddColumn(LNG(COL_HOST), 0);
                         kaillera_mlv.AddColumn(LNG(COL_CODE), 0);
                         kaillera_mlv.FullRowSelect();
+                        Layout_RestoreColumns(kaillera_mlv.handle, "MSLP_COL_", 4, 20);
                         /* Apply language to all controls including ListView column headers.
                            Must be called AFTER columns are created so headers can be updated. */
                         ApplyDialogLanguage(hDlg, KAILLERA_MLIST);
@@ -1219,6 +1233,9 @@ LRESULT CALLBACK p2p_MasterSLDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
 
                         Theme_OnInitDialog(hDlg);
 
+                        break;
+                case WM_DESTROY:
+                        Layout_SaveColumns(GetDlgItem(hDlg, LV_SLIST), "MSLP_COL_", 4);
                         break;
                 case WM_CLOSE:
                         p2p_wg_refresher_thread.eend();

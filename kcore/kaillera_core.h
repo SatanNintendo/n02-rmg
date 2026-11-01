@@ -4,16 +4,16 @@
 #define N02_STRINGIFY(x) #x
 #define N02_TOSTRING(x) N02_STRINGIFY(x)
 
-// Use GIT_REVISION from CI build if available, otherwise use default
-#ifdef GIT_REVISION
-#define N02_VER N02_TOSTRING(GIT_REVISION)
-#else
+// Client version. It is shown to the user everywhere as N02_VER_FULL ("N02 v0.10"):
+// window titles, the message other players see when we leave a server, the
+// P2P "Using version" chat line. (No GIT_REVISION override: the version string
+// must always read exactly "N02 v0.10".)
 #define N02_VER "v0.10"
-#endif
+#define N02_VER_FULL "N02 " N02_VER
 
 #define N02_COMP_VER "kaillera 0.9"
 #define KAILLERA_VERSION N02_VER " (" N02_COMP_VER " compatible)"
-#define N02_WINDOW_TITLE "N02 " N02_VER
+#define N02_WINDOW_TITLE N02_VER_FULL
 
 int kaillera_ping_server(char * host, int port, int limit = 1000);
 void kaillera_step();

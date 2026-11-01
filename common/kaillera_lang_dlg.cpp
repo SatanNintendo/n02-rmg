@@ -8,6 +8,7 @@
 #include "kaillera_lang_dlg.h"
 #include "../resource.h"
 #include "../n02_theme.h"
+#include "../n02_layout.h"
 #include <commctrl.h>
 #include <stdio.h>
 #include <string.h>
@@ -193,10 +194,15 @@ static void OptBarEnumCallback(const char* name, void* ud) {
 void OptionsBar_Refresh(HWND hDlg) {
     SetDlgText(hDlg, IDC_LANG_LABEL, LNG(ABOUT_LBL_LANGUAGE));
     SetDlgText(hDlg, IDC_DARK_THEME, LNG(THEME_DARK));
+    SetDlgText(hDlg, IDC_SAVE_LAYOUT, LNG(OPT_SAVE_WINDOW_LAYOUT));
 
     HWND chk = GetDlgItem(hDlg, IDC_DARK_THEME);
     if (chk != NULL)
         SendMessage(chk, BM_SETCHECK, g_dark_mode ? BST_CHECKED : BST_UNCHECKED, 0);
+
+    HWND chkLayout = GetDlgItem(hDlg, IDC_SAVE_LAYOUT);
+    if (chkLayout != NULL)
+        SendMessage(chkLayout, BM_SETCHECK, Layout_IsEnabled() ? BST_CHECKED : BST_UNCHECKED, 0);
 
     HWND combo = GetDlgItem(hDlg, IDC_LANG_COMBO);
     if (combo == NULL)
@@ -253,6 +259,16 @@ bool OptionsBar_OnCommand(HWND hDlg, WPARAM wParam) {
             HWND chk = GetDlgItem(hDlg, IDC_DARK_THEME);
             if (chk != NULL)
                 SendMessage(chk, BM_SETCHECK, g_dark_mode ? BST_CHECKED : BST_UNCHECKED, 0);
+        }
+        return true;
+    case IDC_SAVE_LAYOUT:
+        if (HIWORD(wParam) == BN_CLICKED) {
+            /* Take the state from the check box itself (auto check box already
+               toggled it). Unchecking also forgets the stored layout. */
+            HWND chk = GetDlgItem(hDlg, IDC_SAVE_LAYOUT);
+            bool on = (chk != NULL) &&
+                (SendMessage(chk, BM_GETCHECK, 0, 0) == BST_CHECKED);
+            Layout_SetEnabled(on);
         }
         return true;
     }

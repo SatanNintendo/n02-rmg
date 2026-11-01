@@ -93,6 +93,9 @@
     <ClCompile Include="n02_theme.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="n02_layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kailleraclient.h">
@@ -171,6 +174,9 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="n02_theme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="n02_layout.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

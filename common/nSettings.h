@@ -15,4 +15,11 @@ public:
         static char* get_str(const char * key, char * buf, const char * def_=0, int bufsize=128);
         static void set_int(const char * key, int val);
         static void set_str(const char * key, const char * val);
+
+        // Same as get_int/set_int but for an explicit ini section; they leave the
+        // section chosen by Initialize() untouched.
+        static int get_int_in(const char * section, const char * key, int def_ = -1);
+        static void set_int_in(const char * section, const char * key, int val);
+        // Removes a whole section (all its keys) from n02.ini.
+        static void clear_section(const char * section);
 };

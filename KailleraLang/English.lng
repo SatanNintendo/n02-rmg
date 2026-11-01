@@ -598,6 +598,7 @@ N02_WINDOW_TITLE=N02 %s
 ; THEME
 ; ============================================================================
 THEME_DARK=Dark theme
+OPT_SAVE_WINDOW_LAYOUT=Save custom window settings
 
 ; ============================================================================
 ; ADDITIONAL STRINGS (units, debug banners, NAT fallback reasons)

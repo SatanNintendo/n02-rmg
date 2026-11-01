@@ -14,6 +14,7 @@
 #include "common/kaillera_lang.h"
 #include "common/kaillera_lang_dlg.h"
 #include "n02_theme.h"
+#include "n02_layout.h"
 
 static bool IsNonGameLobbyName(const char* name);
 
@@ -449,7 +450,7 @@ static void SaveListViewColumnWidths(HWND listHandle, const char* keyPrefix, int
         for (int i = 0; i < count; ++i) {
                 char key[64];
                 wsprintf(key, "%s%i", keyPrefix, i);
-                nSettings::set_int(key, ListView_GetColumnWidth(listHandle, i));
+                Layout_SetInt(key, ListView_GetColumnWidth(listHandle, i));
         }
 }
 
@@ -461,7 +462,7 @@ static void LoadListViewColumnWidths(HWND listHandle, const char* keyPrefix, int
         for (int i = 0; i < count; ++i) {
                 char key[64];
                 wsprintf(key, "%s%i", keyPrefix, i);
-                int savedWidth = nSettings::get_int(key, -1);
+                int savedWidth = Layout_GetInt(key, -1);   /* -1 while "save window settings" is off */
                 if (savedWidth > 0 && savedWidth < KAILLERA_MIN_COLUMN_WIDTH)
                         savedWidth = KAILLERA_MIN_COLUMN_WIDTH;
                 if (savedWidth >= 0)
@@ -471,25 +472,14 @@ static void LoadListViewColumnWidths(HWND listHandle, const char* keyPrefix, int
 }
 
 static void SaveKailleraDialogLayout(HWND hDlg) {
-        if (hDlg == NULL || !g_kaillera_resize_initialized)
+        /* Only when the user enabled "Save custom window settings". */
+        if (hDlg == NULL || !g_kaillera_resize_initialized || !Layout_IsEnabled())
                 return;
 
-        WINDOWPLACEMENT wp;
-        memset(&wp, 0, sizeof(wp));
-        wp.length = sizeof(wp);
-        if (GetWindowPlacement(hDlg, &wp)) {
-                const int w = wp.rcNormalPosition.right - wp.rcNormalPosition.left;
-                const int h = wp.rcNormalPosition.bottom - wp.rcNormalPosition.top;
-                if (w > 100 && h > 100) {
-                        nSettings::set_int((char*)"KSDLG_X", wp.rcNormalPosition.left);
-                        nSettings::set_int((char*)"KSDLG_Y", wp.rcNormalPosition.top);
-                        nSettings::set_int((char*)"KSDLG_W", w);
-                        nSettings::set_int((char*)"KSDLG_H", h);
-                }
-        }
+        Layout_SaveWindow(hDlg, "KSDLG_");
 
-        nSettings::set_int((char*)"KSDLG_TOPRW", g_kaillera_top_right_width);
-        nSettings::set_int((char*)"KSDLG_BOTRW", g_kaillera_bottom_right_width);
+        Layout_SetInt("KSDLG_TOPRW", g_kaillera_top_right_width);
+        Layout_SetInt("KSDLG_BOTRW", g_kaillera_bottom_right_width);
 
         SaveListViewColumnWidths(GetDlgItem(hDlg, LV_ULIST), "KSDLG_UCOL_", 5);
         SaveListViewColumnWidths(GetDlgItem(hDlg, LV_GLIST), "KSDLG_GCOL_", 6);
@@ -497,22 +487,14 @@ static void SaveKailleraDialogLayout(HWND hDlg) {
 }
 
 static void LoadKailleraDialogLayout(HWND hDlg) {
-        if (hDlg == NULL || !g_kaillera_resize_initialized)
+        /* Switch off (default): keep the built-in default layout. */
+        if (hDlg == NULL || !g_kaillera_resize_initialized || !Layout_IsEnabled())
                 return;
 
-        const int savedW = nSettings::get_int((char*)"KSDLG_W", 0);
-        const int savedH = nSettings::get_int((char*)"KSDLG_H", 0);
-        if (savedW > 100 && savedH > 100) {
-                RECT windowRect = { 0, 0, 0, 0 };
-                GetWindowRect(hDlg, &windowRect);
-                const int savedX = nSettings::get_int((char*)"KSDLG_X", windowRect.left);
-                const int savedY = nSettings::get_int((char*)"KSDLG_Y", windowRect.top);
-                SetWindowPos(hDlg, NULL, savedX, savedY, savedW, savedH,
-                        SWP_NOZORDER | SWP_NOACTIVATE);
-        }
+        Layout_RestoreWindow(hDlg, "KSDLG_");
 
-        g_kaillera_top_right_width = nSettings::get_int((char*)"KSDLG_TOPRW", g_kaillera_top_right_width);
-        g_kaillera_bottom_right_width = nSettings::get_int((char*)"KSDLG_BOTRW", g_kaillera_bottom_right_width);
+        g_kaillera_top_right_width = Layout_GetInt("KSDLG_TOPRW", g_kaillera_top_right_width);
+        g_kaillera_bottom_right_width = Layout_GetInt("KSDLG_BOTRW", g_kaillera_bottom_right_width);
 
         LoadListViewColumnWidths(GetDlgItem(hDlg, LV_ULIST), "KSDLG_UCOL_", 5);
         LoadListViewColumnWidths(GetDlgItem(hDlg, LV_GLIST), "KSDLG_GCOL_", 6);
@@ -2269,7 +2251,7 @@ void ConnectToServer(char * ip, int port, HWND pDlg,char * name) {
                 //disconnect
                 KAILLERA_CORE_INITIALIZED = false;
                 char quitmsg[128];
-                wsprintf(quitmsg, "%s " KAILLERA_VERSION, LNG(QUIT_MSG)); // "Open Kaillera - n02 v0.10 (kaillera 0.9 compatible)"
+                lstrcpyn(quitmsg, N02_VER_FULL, sizeof(quitmsg)); // "N02 v0.10"
                 // Frame delay field repurposed - use default quit message
                 kaillera_disconnect(quitmsg);
                 kaillera_core_cleanup();
@@ -2866,6 +2848,7 @@ LRESULT CALLBACK KailleraServerSelectDialogProc(HWND hDlg, UINT uMsg, WPARAM wPa
                                 break;
                         case IDC_LANG_COMBO:
                         case IDC_DARK_THEME:
+                        case IDC_SAVE_LAYOUT:
                                 OptionsBar_OnCommand(hDlg, wParam);
                                 break;
                 };

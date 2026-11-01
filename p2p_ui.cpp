@@ -1957,6 +1957,7 @@ LRESULT CALLBACK P2PSelectionDialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPA
                                 break;
                         case IDC_LANG_COMBO:
                         case IDC_DARK_THEME:
+                        case IDC_SAVE_LAYOUT:
                                 OptionsBar_OnCommand(hDlg, wParam);
                                 break;
                         };

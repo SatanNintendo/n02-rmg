@@ -402,6 +402,277 @@ static void Theme_RestoreRichEditLight(HWND hRichEdit) {
         SendMessage(hRichEdit, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cf);
 }
 
+/* ============================================================================
+ * Dark painting of Tab and Header (ListView column header) controls
+ *
+ * With visual styles disabled (classic look) the tab control draws its tabs
+ * and its page area with the light system colors, and NM_CUSTOMDRAW cannot
+ * change that; the ListView header ignores every color setting. Both are
+ * therefore painted by hand while the dark theme is active, through a plain
+ * window subclass (SetWindowLongPtr/CallWindowProc - works on Windows 7 and
+ * older, no dependency on comctl32 v6 or on undocumented dark-mode APIs).
+ * In light mode the subclass is removed again, restoring the original look.
+ * ============================================================================ */
+
+static const char kPropOldProc[] = "N02DarkOldProc";
+
+static bool IsHeaderControl(HWND hwnd) {
+        char className[32] = {0};
+        GetClassNameA(hwnd, className, sizeof(className));
+        return (strcmp(className, "SysHeader32") == 0);
+}
+
+static void DrawFrameLine(HDC dc, int x1, int y1, int x2, int y2, COLORREF color) {
+        HPEN pen = CreatePen(PS_SOLID, 1, color);
+        HGDIOBJ oldPen = SelectObject(dc, pen);
+        MoveToEx(dc, x1, y1, NULL);
+        LineTo(dc, x2, y2);
+        SelectObject(dc, oldPen);
+        DeleteObject(pen);
+}
+
+/* ---- Tab control ---- */
+
+static void DarkTabPaint(HWND h, HDC dc) {
+        EnsureBrushes();
+
+        RECT rc;
+        GetClientRect(h, &rc);
+        FillRect(dc, &rc, s_brushDarkBg);
+
+        HFONT font = (HFONT)SendMessage(h, WM_GETFONT, 0, 0);
+        HGDIOBJ oldFont = SelectObject(dc, font ? (HGDIOBJ)font : GetStockObject(DEFAULT_GUI_FONT));
+        SetBkMode(dc, TRANSPARENT);
+
+        const int count = TabCtrl_GetItemCount(h);
+        const int sel = TabCtrl_GetCurSel(h);
+
+        /* The page frame starts below the (last row of) tabs. */
+        RECT page = rc;
+        page.top = 0;
+        for (int i = 0; i < count; i++) {
+                RECT ir;
+                if (TabCtrl_GetItemRect(h, i, &ir) && ir.bottom > page.top)
+                        page.top = ir.bottom;
+        }
+        if (count > 0) {
+                page.top -= 1;
+                HBRUSH frame = CreateSolidBrush(ThemeColors::DarkBorder);
+                FrameRect(dc, &page, frame);
+                DeleteObject(frame);
+        }
+
+        for (int i = 0; i < count; i++) {
+                RECT ir;
+                if (!TabCtrl_GetItemRect(h, i, &ir))
+                        continue;
+
+                const bool selected = (i == sel);
+                HBRUSH fill = CreateSolidBrush(selected ? ThemeColors::DarkTabActiveBg : ThemeColors::DarkTabBg);
+                FillRect(dc, &ir, fill);
+                DeleteObject(fill);
+                HBRUSH frame = CreateSolidBrush(ThemeColors::DarkBorder);
+                FrameRect(dc, &ir, frame);
+                DeleteObject(frame);
+
+                /* The selected tab is open towards the page. */
+                if (selected)
+                        DrawFrameLine(dc, ir.left + 1, ir.bottom - 1, ir.right - 1, ir.bottom - 1,
+                                      ThemeColors::DarkTabActiveBg);
+
+                char text[128] = {0};
+                TCITEMA item;
+                memset(&item, 0, sizeof(item));
+                item.mask = TCIF_TEXT;
+                item.pszText = text;
+                item.cchTextMax = sizeof(text) - 1;
+                SendMessage(h, TCM_GETITEMA, i, (LPARAM)&item);
+
+                RECT tr = ir;
+                InflateRect(&tr, -4, 0);
+                SetTextColor(dc, ThemeColors::DarkTabText);
+                DrawTextA(dc, text, -1, &tr, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+        }
+
+        SelectObject(dc, oldFont);
+}
+
+static LRESULT CALLBACK DarkTabProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
+        WNDPROC oldProc = (WNDPROC)GetProp(h, kPropOldProc);
+        if (oldProc == NULL)
+                return DefWindowProc(h, msg, wp, lp);
+
+        if (g_dark_mode) {
+                switch (msg) {
+                case WM_ERASEBKGND:
+                        return 1;       /* everything is painted in WM_PAINT */
+                case WM_PAINT: {
+                        PAINTSTRUCT ps;
+                        HDC dc = BeginPaint(h, &ps);
+                        DarkTabPaint(h, dc);
+                        EndPaint(h, &ps);
+                        return 0;
+                }
+                case WM_PRINTCLIENT:
+                        DarkTabPaint(h, (HDC)wp);
+                        return 0;
+                }
+        }
+
+        if (msg == WM_NCDESTROY) {
+                SetWindowLongPtr(h, GWLP_WNDPROC, (LONG_PTR)oldProc);
+                RemoveProp(h, kPropOldProc);
+        }
+        return CallWindowProc(oldProc, h, msg, wp, lp);
+}
+
+/* ---- Header control (ListView column captions) ---- */
+
+static void DarkHeaderPaint(HWND h, HDC target) {
+        EnsureBrushes();
+
+        RECT rc;
+        GetClientRect(h, &rc);
+        if (rc.right <= rc.left || rc.bottom <= rc.top)
+                return;
+
+        /* Double buffered, so resizing a column does not flicker. */
+        HDC dc = CreateCompatibleDC(target);
+        HBITMAP bmp = CreateCompatibleBitmap(target, rc.right - rc.left, rc.bottom - rc.top);
+        HGDIOBJ oldBmp = SelectObject(dc, bmp);
+
+        FillRect(dc, &rc, s_brushDarkHeaderBg);
+
+        HFONT font = (HFONT)SendMessage(h, WM_GETFONT, 0, 0);
+        HGDIOBJ oldFont = SelectObject(dc, font ? (HGDIOBJ)font : GetStockObject(DEFAULT_GUI_FONT));
+        SetBkMode(dc, TRANSPARENT);
+        SetTextColor(dc, ThemeColors::DarkHeaderText);
+
+        /* Item under the mouse (hover highlight). */
+        int hot = -1;
+        POINT pt;
+        if (GetCursorPos(&pt)) {
+                ScreenToClient(h, &pt);
+                HDHITTESTINFO hti;
+                memset(&hti, 0, sizeof(hti));
+                hti.pt = pt;
+                SendMessage(h, HDM_HITTEST, 0, (LPARAM)&hti);
+                if ((hti.flags & HHT_ONHEADER) != 0)
+                        hot = hti.iItem;
+        }
+
+        const COLORREF sep = RGB(75, 75, 80);
+        const int count = (int)SendMessage(h, HDM_GETITEMCOUNT, 0, 0);
+        for (int i = 0; i < count; i++) {
+                RECT ir;
+                if (!SendMessage(h, HDM_GETITEMRECT, i, (LPARAM)&ir))
+                        continue;
+                if (ir.right <= ir.left)
+                        continue;       /* hidden (zero width) column */
+
+                if (i == hot) {
+                        HBRUSH hotBrush = CreateSolidBrush(ThemeColors::DarkBtnBgHot);
+                        FillRect(dc, &ir, hotBrush);
+                        DeleteObject(hotBrush);
+                }
+
+                char text[256] = {0};
+                HDITEMA item;
+                memset(&item, 0, sizeof(item));
+                item.mask = HDI_TEXT | HDI_FORMAT;
+                item.pszText = text;
+                item.cchTextMax = sizeof(text) - 1;
+                SendMessage(h, HDM_GETITEMA, i, (LPARAM)&item);
+
+                UINT align = DT_LEFT;
+                if ((item.fmt & HDF_JUSTIFYMASK) == HDF_RIGHT)
+                        align = DT_RIGHT;
+                else if ((item.fmt & HDF_JUSTIFYMASK) == HDF_CENTER)
+                        align = DT_CENTER;
+
+                RECT tr = ir;
+                tr.left += 6;
+                tr.right -= 6;
+                if (tr.right > tr.left)
+                        DrawTextA(dc, text, -1, &tr, align | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX | DT_END_ELLIPSIS);
+
+                /* Divider on the right edge of the column. */
+                DrawFrameLine(dc, ir.right - 1, ir.top + 2, ir.right - 1, ir.bottom - 2, sep);
+        }
+        DrawFrameLine(dc, rc.left, rc.bottom - 1, rc.right, rc.bottom - 1, sep);
+
+        SelectObject(dc, oldFont);
+        BitBlt(target, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, dc, 0, 0, SRCCOPY);
+        SelectObject(dc, oldBmp);
+        DeleteObject(bmp);
+        DeleteDC(dc);
+}
+
+static LRESULT CALLBACK DarkHeaderProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
+        WNDPROC oldProc = (WNDPROC)GetProp(h, kPropOldProc);
+        if (oldProc == NULL)
+                return DefWindowProc(h, msg, wp, lp);
+
+        if (g_dark_mode) {
+                switch (msg) {
+                case WM_ERASEBKGND:
+                        return 1;
+                case WM_PAINT: {
+                        PAINTSTRUCT ps;
+                        HDC dc = BeginPaint(h, &ps);
+                        DarkHeaderPaint(h, dc);
+                        EndPaint(h, &ps);
+                        return 0;
+                }
+                case WM_PRINTCLIENT:
+                        DarkHeaderPaint(h, (HDC)wp);
+                        return 0;
+                case WM_MOUSEMOVE: {
+                        TRACKMOUSEEVENT tme;
+                        tme.cbSize = sizeof(tme);
+                        tme.dwFlags = TME_LEAVE;
+                        tme.hwndTrack = h;
+                        tme.dwHoverTime = 0;
+                        TrackMouseEvent(&tme);
+                        LRESULT r = CallWindowProc(oldProc, h, msg, wp, lp);
+                        InvalidateRect(h, NULL, FALSE);
+                        return r;
+                }
+                case WM_MOUSELEAVE:
+                        InvalidateRect(h, NULL, FALSE);
+                        break;
+                }
+        }
+
+        if (msg == WM_NCDESTROY) {
+                SetWindowLongPtr(h, GWLP_WNDPROC, (LONG_PTR)oldProc);
+                RemoveProp(h, kPropOldProc);
+        }
+        return CallWindowProc(oldProc, h, msg, wp, lp);
+}
+
+/* Install / remove one of the subclasses above. Safe to call repeatedly. */
+static void DarkSubclass(HWND child, WNDPROC proc, bool install) {
+        const bool installed = (GetProp(child, kPropOldProc) != NULL);
+        if (install) {
+                if (installed)
+                        return;
+                WNDPROC old = (WNDPROC)SetWindowLongPtr(child, GWLP_WNDPROC, (LONG_PTR)proc);
+                if (old != NULL)
+                        SetProp(child, kPropOldProc, (HANDLE)old);
+        } else if (installed) {
+                /* Only unhook when we are still the outermost window procedure;
+                 * otherwise the proc stays in the chain and simply passes
+                 * everything through (it paints only while g_dark_mode is set). */
+                if ((WNDPROC)GetWindowLongPtr(child, GWLP_WNDPROC) == proc) {
+                        WNDPROC old = (WNDPROC)GetProp(child, kPropOldProc);
+                        SetWindowLongPtr(child, GWLP_WNDPROC, (LONG_PTR)old);
+                        RemoveProp(child, kPropOldProc);
+                }
+        }
+        InvalidateRect(child, NULL, TRUE);
+}
+
 void Theme_ApplyToDialogChildren(HWND hDlg) {
         if (hDlg == NULL)
                 return;
@@ -433,6 +704,15 @@ void Theme_ApplyToDialogChildren(HWND hDlg) {
                                 SetWindowTheme(child, L"", L"");
                         }
 
+                        /* Tab pages and ListView column headers are painted by hand. */
+                        if (IsTabControl(child)) {
+                                /* Do not paint over sibling controls that sit on the page. */
+                                SetWindowLong(child, GWL_STYLE, GetWindowLong(child, GWL_STYLE) | WS_CLIPSIBLINGS);
+                                DarkSubclass(child, DarkTabProc, true);
+                        } else if (IsHeaderControl(child)) {
+                                DarkSubclass(child, DarkHeaderProc, true);
+                        }
+
                         /* Convert push buttons to owner-draw so we can
                          * paint them dark via WM_DRAWITEM. Push buttons
                          * ignore the brush returned from WM_CTLCOLORBTN. */
@@ -454,6 +734,12 @@ void Theme_ApplyToDialogChildren(HWND hDlg) {
                             IsScrollBarControl(child) ||
                             IsTabControl(child)) {
                                 SetWindowTheme(child, NULL, NULL);
+                        }
+
+                        if (IsTabControl(child)) {
+                                DarkSubclass(child, DarkTabProc, false);
+                        } else if (IsHeaderControl(child)) {
+                                DarkSubclass(child, DarkHeaderProc, false);
                         }
 
                         /* ListView colors set in dark mode must be reset as well. */
