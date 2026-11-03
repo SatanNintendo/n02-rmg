@@ -444,7 +444,7 @@ void RecordsList_DeleteSelected(){
 
 static const char* colKeys[PB_NUM_COLS] = { "PBColDate", "PBColPlayers", "PBColGame", "PBColDuration", "PBColSize", "PBColFilename" };
 static const char* colVisKeys[PB_NUM_COLS] = { "PBVisDate", "PBVisPlayers", "PBVisGame", "PBVisDuration", "PBVisSize", "PBVisFilename" };
-static const int colDefaults[PB_NUM_COLS] = { 80, 160, 200, 60, 60, 150 };
+static const int colDefaults[PB_NUM_COLS] = { 83, 118, 204, 84, 67, 152 };
 static const char* colNames[PB_NUM_COLS]; /* populated in WM_INITDIALOG after LangInit() */
 static bool col_visible[PB_NUM_COLS];
 static int col_saved_width[PB_NUM_COLS];
